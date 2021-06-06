@@ -5,8 +5,8 @@ HPO-B is a benchmark for assessing the performance of HPO algorithms. This repo 
 
 The meta-dataset contains evaluations of the accuracy for different search-spaces on different datasets. For more details on the meta-dataset, refer to our paper (\*). It is presented in three versions:
 
-- **HPO-B-v1**: The raw benchmark of all 176 meta-datasets;
-- **HPO-B-v2**: Subset of 16 meta-datasets with the most frequent search spaces;
+- **HPO-B-v1**: The raw benchmark of all 176 meta-datasets.
+- **HPO-B-v2**: Subset of 16 meta-datasets with the most frequent search spaces.
 - **HPO-B-v3**: Split of HPO-B-v2 into training, validation and testing. 
 
 **The HPO-B benchmark dataset is available in the  [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL)**
