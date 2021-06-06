@@ -18,7 +18,7 @@ To test the algorithm:
 
 ```python
 from hpob_handler import HPOBHandler
-from bo_methods import RandomSearch
+from methods.random_search import RandomSearch
 import matplotlib.pyplot as plt
 
 hpob_hdlr = HPOBHandler(root_dir="HPO-Bench/", mode="test")
