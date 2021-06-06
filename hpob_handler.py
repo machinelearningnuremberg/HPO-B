@@ -16,8 +16,8 @@ class HPOBHandler:
             self.load_data(root_dir, only_test=True)
         elif self.mode == "train-augmented":
             self.load_data(root_dir, only_test=False, augmented_train=True)
-        else:
-            self.load_data(root_dir, only_test=False)
+        elif self.mode == "v3":
+            self.load_data(root_dir, version = "v3", only_test=False)
 
     def load_data(self, rootdir="", version = "v3", only_test = True, augmented_train = False):
 
@@ -35,8 +35,7 @@ class HPOBHandler:
             self.bo_initializations = json.load(f)
 
         if not only_test:
-
-            if augmented_train:
+            if augmented_train or version=="v1":
                 with open(meta_train_augmented_path, "rb") as f:
                     self.meta_train_data = json.load(f)
             else:
@@ -44,6 +43,23 @@ class HPOBHandler:
                     self.meta_train_data = json.load(f)
             with open(meta_validation_path, "rb") as f:
                 self.meta_validation_data = json.load(f)
+
+        if version != "v3":
+            temp_data = {}
+            for search_space in self.meta_train_data.keys():
+                temp_data[search_space] = {}
+
+                for dataset in self.meta_train_data[search_space].keys():
+                    temp_data[search_space][dataset] =  self.meta_train_data[search_space][dataset]
+                
+                for dataset in self.meta_test_data[search_space].keys():
+                    temp_data[search_space][dataset] = self.meta_test_data[search_space][dataset]
+
+                for dataset in self.meta_validation_data[search_space].keys():
+                    temp_data[search_space][dataset] = self.meta_validation_data[search_space][dataset]
+            
+            self.meta_test_data = temp_data     
+
 
     def normalize(self, y):
 
