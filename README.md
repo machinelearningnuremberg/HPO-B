@@ -32,7 +32,7 @@ hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="v3-test")
   - **v3**: Loads HPO-B-v3
   - **v3-test**: Loads only the meta-test split from HPO-B-v3
   - **v3-train-augmented**: Loads all splits from HPO-B-v3, but with the augmenting the meta-train data with the less frequent search-spaces.
-* Evaluate the new method by using the function `evaluate` of the HPOB handler. The function receives the HPO algorithm class (method), the search space ID, dataset ID, the seed ID and the number of optimization trials.
+* Evaluate the new method by using the function `evaluate` of the HPOB handler. The function receives the HPO algorithm class (`method`), the search space ID, dataset ID, the seed ID and the number of optimization trials.
 ```python
 acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 
                                         dataset_id = dataset_id,
