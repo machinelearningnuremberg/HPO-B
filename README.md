@@ -15,18 +15,21 @@ Before testing the algorithm:
 
 * Download HPO-B data.
 * Download the source code of this repo.
-* Create a class that encapsulates the new HPO algorithm. The class should have a function called **observe_and_suggest** that will be called by **HPOBHandler object**, the class for loading the data and evaluating the algorithm.
+* Create a class that encapsulates the new HPO method. The class should have a function called **observe_and_suggest** that will be called by **HPOBHandler object**, the class for loading the data and evaluating the method.
 * This function receives three parameters *X_obs, y_obs, X_pen* that represent the observed hyperparameter configurations, its response value and the configurations pending to evalute, respectively. It should return the index of the next sample to evaluate in the pending configurations (*X_pen*).
 
 To test the algorithm:
 
-* Create a HPOBHandler object by specifying the path and the mode.
-* 5 different modes are possible as argument:
+* Create a HPOBHandler object by specifying the path to the meta-dataset and the *mode*.
+* 5 different *modes* are possible as argument:
   - **v1**: Loads HPO-B-v1
   - **v2**: Loads HPO-B-v2
   - **v3**: Loads HPO-B-v3
   - **v3-test**: Loads only the meta-test split from HPO-B-v3
   - **v3-train-augmented**: Loads all splits from HPO-B-v3, but with the augmenting the meta-train data with the less frequent search-spaces.
+* Evaluate the new method by using the function **evaluate** of the HPOB handler. The function receives the HPO algorithm class (method), the search space ID, dataset ID, the seed ID and the number of optimization trials.
+* The function returns a list of the maximum accuracy achieved after every trial.
+* 
 
 ## Requirements
 ## Example
@@ -41,13 +44,13 @@ search_space_id =  hpob_hdlr.get_search_spaces()[0]
 dataset_id = hpob_hdlr.get_datasets(search_space_id)[1]
 
 method = RandomSearch()
-perf = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 
+acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 
                                         dataset_id = dataset_id,
-                                        trial = trial,
-                                        n_iterations = 100 )
+                                        seed = "test0",
+                                        n_trials = 100 )
 
 
-plt.plot(perf)
+plt.plot(acc)
 ```
 ## License
 ## Citation
