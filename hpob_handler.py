@@ -1,5 +1,5 @@
 #Before running this notebook download the data from https://rewind.tf.uni-freiburg.de/index.php/s/B6gY9cpZ65fBfGJ
-#For easing the consumption of the data
+#For easing the consumption of the data, version2
 import numpy as np
 import pandas as pd
 import json
