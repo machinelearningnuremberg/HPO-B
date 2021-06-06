@@ -1,5 +1,4 @@
 
-import random
 from botorch.acquisition.analytic import ConstrainedExpectedImprovement
 from botorch.acquisition.monte_carlo import qExpectedImprovement
 from botorch.acquisition.multi_step_lookahead import _construct_sample_weights
@@ -11,18 +10,6 @@ from gpytorch.mlls import ExactMarginalLogLikelihood
 from botorch.acquisition import UpperConfidenceBound, ExpectedImprovement, ProbabilityOfImprovement, PosteriorMean
 import torch
 import numpy as np
-
-class RandomSearch:
-
-    def __init__(self):
-
-        print("Using random search method...")
-
-    def observe_and_suggest(self, X_obs, y_obs, X_pen):
-
-        size_pending_eval = len(X_pen)
-        idx = random.randint(0, size_pending_eval-1)
-        return idx
 
 
 class GaussianProcess:
@@ -55,8 +42,6 @@ class GaussianProcess:
             return qExpectedImprovement(gp, best_f=best_f)
             
     def observe_and_suggest(self, X_obs, y_obs, X_pen):
-
-
 
         #fit the gaussian process
         dim = X_obs.shape[1]
