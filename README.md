@@ -13,10 +13,10 @@ The meta-dataset contains evaluations of the accuracy for different search-space
 
 ## Usage
 
-Before testing the algorithm:
+Before testing a new algorithm:
 
 * Download HPO-B data.
-* Download the source code of this repo.`
+* Download the source code of this repo.
 * Create a class that encapsulates the new HPO method. The class should have a function called `observe_and_suggest` that will be called by `HPOBHandler` object, the class for loading the data and evaluating the method.
 * This function receives three parameters *X_obs, y_obs, X_pen* that represent the observed hyperparameter configurations, its response value and the configurations pending to evalute, respectively. It should return the index of the next sample to evaluate in the pending configurations (*X_pen*).
 
