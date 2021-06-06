@@ -20,15 +20,27 @@ Before testing the algorithm:
 
 To test the algorithm:
 
-* Create a HPOBHandler object by specifying the path to the meta-dataset and the *mode*.
-* 5 different *modes* are possible as argument:
+* Create a HPOBHandler object by specifying the path to the meta-dataset and the mode.
+```python
+hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="v3-test")
+```
+* 5 different modes are possible as argument:
   - **v1**: Loads HPO-B-v1
   - **v2**: Loads HPO-B-v2
   - **v3**: Loads HPO-B-v3
   - **v3-test**: Loads only the meta-test split from HPO-B-v3
   - **v3-train-augmented**: Loads all splits from HPO-B-v3, but with the augmenting the meta-train data with the less frequent search-spaces.
 * Evaluate the new method by using the function **evaluate** of the HPOB handler. The function receives the HPO algorithm class (method), the search space ID, dataset ID, the seed ID and the number of optimization trials.
+```python
+acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 
+                                        dataset_id = dataset_id,
+                                        seed = "test0",
+                                        n_trials = 100 )
+```
+
 * The function returns a list of the maximum accuracy achieved after every trial.
+* The five valid seeds identifiers are: "test0", "test1", "test2", "test3", "test4".
+* The search spaces ID and datasets ID available to evaluate can be queried by using the functions **get_search_spaces()** and **get_datasets()** of the HPOB handler.
 * 
 
 ## Requirements
@@ -38,7 +50,7 @@ from hpob_handler import HPOBHandler
 from methods.random_search import RandomSearch
 import matplotlib.pyplot as plt
 
-hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="test")
+hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="v3-test")
 
 search_space_id =  hpob_hdlr.get_search_spaces()[0]
 dataset_id = hpob_hdlr.get_datasets(search_space_id)[1]
