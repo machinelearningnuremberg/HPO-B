@@ -14,9 +14,9 @@ To test the algorithm:
 
 * Create a HPOBHandler object by specifying the path and the mode.
 * Three different modes are possible:
- - v1
- - v2#
- - v3
+  - v1
+  - v2
+  - v3
 
 ```python
 from hpob_handler import HPOBHandler
