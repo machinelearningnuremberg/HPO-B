@@ -52,12 +52,12 @@ class GaussianProcess:
         mll = ExactMarginalLogLikelihood(gp.likelihood, gp)
         fit_gpytorch_model(mll)
 
+        #eval acquisition function
         best_f = torch.max(y_obs)
         acq = self.get_acquisition( gp=gp, best_f=best_f)
         eval_acq = acq( X_pen).detach().numpy()
         
         return np.argmax(eval_acq)
-        #sample the acquisition functions
 
 
 

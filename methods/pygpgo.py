@@ -13,7 +13,7 @@ class RandomForest:
 
     
     def observe_and_suggest(self, X_obs, y_obs, X_pen):
-
+        
         self.surrogate.fit(X_obs, y_obs.reshape(-1))
         tau = np.max(y_obs).reshape(-1)
         mean, std = self.surrogate.predict(X_pen, return_std=True)
