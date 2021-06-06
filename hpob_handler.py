@@ -60,7 +60,9 @@ class HPOBHandler:
 
                     for dataset in self.meta_validation_data[search_space].keys():
                         temp_data[search_space][dataset] = self.meta_validation_data[search_space][dataset]
-                
+
+            self.meta_train_data = None
+            self.meta_validation_data = None                
             self.meta_test_data = temp_data     
 
 
