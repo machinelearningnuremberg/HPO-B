@@ -21,7 +21,7 @@ from hpob_handler import HPOBHandler
 from methods.random_search import RandomSearch
 import matplotlib.pyplot as plt
 
-hpob_hdlr = HPOBHandler(root_dir="HPO-Bench/", mode="test")
+hpob_hdlr = HPOBHandler(root_dir="hpo-b-data/", mode="test")
 
 search_space_id =  hpob_hdlr.get_search_spaces()[0]
 dataset_id = hpob_hdlr.get_datasets(search_space_id)[1]
