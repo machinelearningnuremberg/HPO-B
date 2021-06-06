@@ -8,7 +8,7 @@ trials = ["test0", "test1", "test2", "test3", "test4"]
 perf_list = []
 n_iterations = 20
 
-hpob_hdlr = HPOBHandler(root_dir="../hpo-b-data/", mode="test")
+hpob_hdlr = HPOBHandler(root_dir="../hpob-data/", mode="test")
 search_space_id =  hpob_hdlr.get_search_spaces()[1]
 dataset_id = hpob_hdlr.get_datasets(search_space_id)[1]
 
