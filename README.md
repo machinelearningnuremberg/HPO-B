@@ -47,7 +47,7 @@ acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id,
 * botorch (optional for running advanced examples)
 * pyGPGO (optional for running advanced examples)
 
-## Basic Example
+## Basic example
 ```python
 from hpob_handler import HPOBHandler
 from methods.random_search import RandomSearch
