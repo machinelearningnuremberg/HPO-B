@@ -1,7 +1,6 @@
 #Before running this notebook download the data from https://rewind.tf.uni-freiburg.de/index.php/s/B6gY9cpZ65fBfGJ
 #For easing the consumption of the data, version2
 import numpy as np
-import pandas as pd
 import json
 import os
 
@@ -94,16 +93,16 @@ class HPOBHandler:
             pending_evaluations.remove(idx)
             current_evaluations.append(idx)
 
-        max_performance_history = []
+        max_accuracy_history = []
         for i in range(n_trials):
 
             idx = bo_method.observe_and_suggest(X[current_evaluations], y[current_evaluations], X[pending_evaluations])
             idx = pending_evaluations[idx]
             pending_evaluations.remove(idx)
             current_evaluations.append(idx)
-            max_performance_history.append(np.max(y[current_evaluations]))
+            max_accuracy_history.append(np.max(y[current_evaluations]))
         
-        return max_performance_history
+        return max_accuracy_history
 
     def get_search_spaces(self):
         return list(self.meta_test_data.keys())

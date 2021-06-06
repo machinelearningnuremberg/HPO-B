@@ -5,7 +5,7 @@ from methods.pygpgo import RandomForest
 
 valid_acquisitions = ["Entropy", "ExpectedImprovement", "IntegratedExpectedImprovement", "ProbabilityImprovement", "IntegratedProbabilityImprovement", "UCB", "IntegratedUCB"]
 seeds = ["test0", "test1", "test2", "test3", "test4"]
-perf_list = []
+acc_list = []
 n_trials = 20
 
 hpob_hdlr = HPOBHandler(root_dir="../hpob-data/", mode="test")
@@ -13,7 +13,7 @@ search_space_id =  hpob_hdlr.get_search_spaces()[0]
 dataset_id = hpob_hdlr.get_datasets(search_space_id)[0]
 
 for acq_name in valid_acquisitions:
-    perf_per_method = []
+    acc_per_method = []
     for seed in seeds:
         print("Using ", acq_name, " as acquisition function...")
 
@@ -21,12 +21,12 @@ for acq_name in valid_acquisitions:
         method = RandomForest(acq_name=acq_name)
 
         #evaluate the HPO method
-        perf = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 
+        acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 
                                                 dataset_id = dataset_id,
                                                 trial = seed,
                                                 n_trials = n_trials )
-        perf_per_method.append(perf)
+        acc_per_method.append(acc)
 
-    plt.plot(np.array(perf_per_method).mean(axis=0))
+    plt.plot(np.array(acc_per_method).mean(axis=0))
 plt.legend(valid_acquisitions)
 plt.show()
