@@ -39,7 +39,7 @@ class GaussianProcess:
 
         elif self.acq_name == "qEI":
             sampler = SobolQMCNormalSampler(1000)
-            return qExpectedImprovement(gp, best_f=best_f)
+            return qExpectedImprovement(gp, best_f=best_f, sampler=sampler)
             
     def observe_and_suggest(self, X_obs, y_obs, X_pen):
 

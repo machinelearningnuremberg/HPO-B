@@ -8,16 +8,18 @@ import os
 
 class HPOBHandler:
 
-    def __init__(self, root_dir = "", mode = "test"):
-        print("Loading boss handler")
+    def __init__(self, root_dir = "", mode = "v3-test"):
+        print("Loading HPO-B handler")
         self.mode = mode
 
-        if self.mode == "test":
+        if self.mode == "v3-test":
             self.load_data(root_dir, only_test=True)
-        elif self.mode == "train-augmented":
+        elif self.mode == "v3-train-augmented":
             self.load_data(root_dir, only_test=False, augmented_train=True)
-        elif self.mode == "v3":
-            self.load_data(root_dir, version = "v3", only_test=False)
+        elif self.mode in ["v1", "v2", "v3"]:
+            self.load_data(root_dir, version = self.mode, only_test=False)
+        else:
+            raise ValueError("Provide a valid mode")
 
     def load_data(self, rootdir="", version = "v3", only_test = True, augmented_train = False):
 
@@ -51,13 +53,14 @@ class HPOBHandler:
 
                 for dataset in self.meta_train_data[search_space].keys():
                     temp_data[search_space][dataset] =  self.meta_train_data[search_space][dataset]
-                
-                for dataset in self.meta_test_data[search_space].keys():
-                    temp_data[search_space][dataset] = self.meta_test_data[search_space][dataset]
 
-                for dataset in self.meta_validation_data[search_space].keys():
-                    temp_data[search_space][dataset] = self.meta_validation_data[search_space][dataset]
-            
+                if search_space in self.meta_test_data.keys():             
+                    for dataset in self.meta_test_data[search_space].keys():
+                        temp_data[search_space][dataset] = self.meta_test_data[search_space][dataset]
+
+                    for dataset in self.meta_validation_data[search_space].keys():
+                        temp_data[search_space][dataset] = self.meta_validation_data[search_space][dataset]
+                
             self.meta_test_data = temp_data     
 
 
@@ -65,13 +68,13 @@ class HPOBHandler:
 
         return (y-np.min(y))/(np.max(y)-np.min(y))
 
-    def evaluate (self, bo_method = None, search_space_id = None, dataset_id = None, trial = None, n_iterations = 10):
+    def evaluate (self, bo_method = None, search_space_id = None, dataset_id = None, seed = None, n_trials = 10):
 
         assert bo_method!=None, "Provide a valid method object for evaluation."
         assert hasattr(bo_method, "observe_and_suggest"), "The provided  object does not have a method called ´observe_and_suggest´"
         assert search_space_id!= None, "Provide a valid search space id. See documentatio for valid obptions."
         assert dataset_id!= None, "Provide a valid dataset_id. See documentation for valid options."
-        assert trial!=None, "Provide a valid initialization. Valid options are: test0, test1, test2, test3, test4."
+        assert seed!=None, "Provide a valid initialization. Valid options are: test0, test1, test2, test3, test4."
 
         n_initial_evaluations = 5
         X = np.array(self.meta_test_data[search_space_id][dataset_id]["X"])
@@ -82,7 +85,7 @@ class HPOBHandler:
         pending_evaluations = list(range(data_size))
         current_evaluations = []        
 
-        init_ids = self.bo_initializations[search_space_id][dataset_id][trial]
+        init_ids = self.bo_initializations[search_space_id][dataset_id][seed]
         
         for i in range(n_initial_evaluations):
             idx = init_ids[i]
@@ -90,7 +93,7 @@ class HPOBHandler:
             current_evaluations.append(idx)
 
         max_performance_history = []
-        for i in range(n_iterations):
+        for i in range(n_trials):
 
             idx = bo_method.observe_and_suggest(X[current_evaluations], y[current_evaluations], X[pending_evaluations])
             idx = pending_evaluations[idx]
