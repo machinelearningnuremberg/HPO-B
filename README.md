@@ -28,6 +28,8 @@ To test the algorithm:
   - **v3-test**: Loads only the meta-test split from HPO-B-v3
   - **v3-train-augmented**: Loads all splits from HPO-B-v3, but with the augmenting the meta-train data with the less frequent search-spaces.
 
+## Requirements
+## Example
 ```python
 from hpob_handler import HPOBHandler
 from methods.random_search import RandomSearch
@@ -46,5 +48,6 @@ perf = hpob_hdlr.evaluate(method, search_space_id = search_space_id,
 
 
 plt.plot(perf)
-
-
+```
+## License
+## Citation
