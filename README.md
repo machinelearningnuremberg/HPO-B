@@ -9,14 +9,14 @@ The meta-dataset contains evaluations of the accuracy for different search-space
 - **HPO-B-v2**: Subset of 16 meta-datasets with the most frequent search spaces.
 - **HPO-B-v3**: Split of HPO-B-v2 into training, validation and testing. 
 
-**The HPO-B benchmark dataset is available in the  [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL)**
+**The HPO-B benchmark meta-dataset is available  [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL)**
 
 ## Usage
 
-Before testing the algorithm:
+Before testing a new algorithm:
 
 * Download HPO-B data.
-* Download the source code of this repo.`
+* Download the source code of this repo.
 * Create a class that encapsulates the new HPO method. The class should have a function called `observe_and_suggest` that will be called by `HPOBHandler` object, the class for loading the data and evaluating the method.
 * This function receives three parameters *X_obs, y_obs, X_pen* that represent the observed hyperparameter configurations, its response value and the configurations pending to evalute, respectively. It should return the index of the next sample to evaluate in the pending configurations (*X_pen*).
 
@@ -31,8 +31,8 @@ hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="v3-test")
   - **v2**: Loads HPO-B-v2
   - **v3**: Loads HPO-B-v3
   - **v3-test**: Loads only the meta-test split from HPO-B-v3
-  - **v3-train-augmented**: Loads all splits from HPO-B-v3, but with the augmenting the meta-train data with the less frequent search-spaces.
-* Evaluate the new method by using the function `evaluate` of the HPOB handler. The function receives the HPO algorithm class (method), the search space ID, dataset ID, the seed ID and the number of optimization trials.
+  - **v3-train-augmented**: Loads all splits from HPO-B-v3, but augmenting the meta-train data with the less frequent search-spaces.
+* Evaluate the new method by using the function `evaluate` of the HPOB handler. The function receives the HPO algorithm class (`method`), the search space ID, dataset ID, the seed ID and the number of optimization trials.
 ```python
 acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 
                                         dataset_id = dataset_id,
