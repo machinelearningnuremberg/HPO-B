@@ -72,3 +72,15 @@ plt.plot(acc)
 ## Advanced examples
 
 For more advanced examples on how to use more methods and fully evaluate a search space using all the seeds, refer to the files `example_botorch.py` or `example_pygpgo.py`.
+
+
+## Cite us
+
+@misc{arango2021hpob,
+      title={HPO-B: A Large-Scale Reproducible Benchmark for Black-Box HPO based on OpenML}, 
+      author={Sebastian Pineda Arango and Hadi S. Jomaa and Martin Wistuba and Josif Grabocka},
+      year={2021},
+      eprint={2106.06257},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
