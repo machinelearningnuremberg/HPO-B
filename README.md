@@ -75,7 +75,7 @@ For more advanced examples on how to use more methods and fully evaluate a searc
 
 
 ## Cite us
-
+```
 @misc{arango2021hpob,
       title={HPO-B: A Large-Scale Reproducible Benchmark for Black-Box HPO based on OpenML}, 
       author={Sebastian Pineda Arango and Hadi S. Jomaa and Martin Wistuba and Josif Grabocka},
@@ -84,3 +84,4 @@ For more advanced examples on how to use more methods and fully evaluate a searc
       archivePrefix={arXiv},
       primaryClass={cs.LG}
 }
+```
