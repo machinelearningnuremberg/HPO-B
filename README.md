@@ -1,5 +1,5 @@
 # HPO-B
-HPO-B is a benchmark for assessing the performance of HPO algorithms. This repo contains the code for easing the consumption of the meta-dataset and speeding up the testing. 
+HPO-B is a benchmark for assessing the performance of black-box HPO algorithms. This repo contains the code for easing the consumption of the meta-dataset and speeding up the testing. 
 
 ## Meta-Dataset 
 
