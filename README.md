@@ -11,6 +11,7 @@ The meta-dataset contains evaluations of the accuracy for different search-space
 
 **The HPO-B benchmark meta-dataset is available  [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL/download/hpob-data.zip)**
 
+Additionally, if you wish to test on continuous search spaces, download the surrogates [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/69roMwNpG53sYoe/download/saved-surrogates.zip)
 ## Usage
 
 Before testing a new algorithm:
