@@ -7,6 +7,21 @@ import xgboost as xgb
 class HPOBHandler:
 
     def __init__(self, root_dir = "hpob-data/", mode = "v3-test", surrogates_dir="saved-surrogates/"):
+        
+        """
+        Constructor for the HPOBHandler.
+        Inputs:
+            * root_dir: path to directory with the benchmark data.
+            * mode: mode name indicating how to load the data. Options: 
+                - v1: Loads HPO-B-v1
+                - v2: Loads HPO-B-v2
+                - v3: Loads HPO-B-v3
+                - v3-test: Loads only the meta-test split from HPO-B-v3
+                - v3-train-augmented: Loads all splits from HPO-B-v3, but augmenting the meta-train data with the less frequent search-spaces.
+            * surrogates_dir: path to directory with surrogates models.
+
+        """
+        
         print("Loading HPO-B handler")
         self.mode = mode
         self.surrogates_dir = surrogates_dir
@@ -27,6 +42,16 @@ class HPOBHandler:
 
 
     def load_data(self, rootdir="", version = "v3", only_test = True, augmented_train = False):
+
+        """
+        Loads data with some specifications.
+        Inputs:
+            * root_dir: path to directory with the benchmark data.
+            * version: name indicating what HPOB version to use. Options: v1, v2, v3).
+            * Only test: Whether to load only testing data (valid only for version v3).  Options: True/False
+            * augmented_train: Whether to load the augmented train data (valid only for version v3). Options: True/False
+
+        """
 
         print("Loading data...")
         meta_train_augmented_path = os.path.join(rootdir, "meta-train-dataset-augmented.json")
@@ -80,6 +105,19 @@ class HPOBHandler:
 
     def evaluate (self, bo_method = None, search_space_id = None, dataset_id = None, seed = None, n_trials = 10):
 
+        """
+        Evaluates a method on the benchmark with discretized search-spaces. 
+        Inputs:
+            * bo_method: object to evaluate. It should have a function (class method) named 'observe_and_suggest'.
+            * search_space_id: Identifier of the search spaces for the evaluation. Option: see original paper.
+            * dataset_id: Identifier of the dataset for the evaluation. Options: see original paper.
+            * seed: Identifier of the seed for the evaluation. Options: test0, test1, test2, test3, test4.
+            * trails: Number of trials (iterations on the opoitmization).
+        Ooutput:
+            * a list with the maximumu performance (incumbent) for every trial.
+
+        """
+
         assert bo_method!=None, "Provide a valid method object for evaluation."
         assert hasattr(bo_method, "observe_and_suggest"), "The provided  object does not have a method called ´observe_and_suggest´"
         assert search_space_id!= None, "Provide a valid search space id. See documentatio for valid obptions."
@@ -114,6 +152,19 @@ class HPOBHandler:
         return max_accuracy_history
 
     def evaluate_continuous(self, bo_method = None, search_space_id = None, dataset_id = None, seed = None, n_trials = 10):
+
+        """
+        Evaluates a method on the benchmark with continuous search-spaces. 
+        Inputs:
+            * bo_method: object to evaluate. It should have a function (class method) named 'observe_and_suggest'.
+            * search_space_id: Identifier of the search spaces for the evaluation. Option: see original paper.
+            * dataset_id: Identifier of the dataset for the evaluation. Options: see original paper.
+            * seed: Identifier of the seed for the evaluation. Options: test0, test1, test2, test3, test4.
+            * trails: Number of trials (iterations on the opoitmization).
+        Ooutput:
+            * a list with the maximumu performance (incumbent) for every trial.
+
+        """
 
         assert bo_method!=None, "Provide a valid method object for evaluation."
         assert hasattr(bo_method, "observe_and_suggest"), "The provided  object does not have a method called ´observe_and_suggest´"
@@ -159,7 +210,7 @@ class HPOBHandler:
         y_tf_observed = self.normalize(y_observed, y_min, y_max)
         y_tf_observed = np.clip(y_tf_observed, 0, 1)
         max_accuracy_history.append(best_f)
-        
+
         return max_accuracy_history
 
     def get_search_spaces(self):
