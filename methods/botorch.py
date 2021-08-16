@@ -10,7 +10,7 @@ from gpytorch.mlls import ExactMarginalLogLikelihood
 from botorch.acquisition import UpperConfidenceBound, ExpectedImprovement, ProbabilityOfImprovement, PosteriorMean
 import torch
 import numpy as np
-
+from botorch.optim import optimize_acqf
 
 class GaussianProcess:
 
@@ -41,23 +41,41 @@ class GaussianProcess:
             sampler = SobolQMCNormalSampler(1000)
             return qExpectedImprovement(gp, best_f=best_f, sampler=sampler)
             
-    def observe_and_suggest(self, X_obs, y_obs, X_pen):
+    def observe_and_suggest(self, X_obs, y_obs, X_pen=None):
 
         #fit the gaussian process
         dim = X_obs.shape[1]
         X_obs = torch.FloatTensor(X_obs)
         y_obs = torch.FloatTensor(y_obs)
-        X_pen = torch.FloatTensor(X_pen).reshape(-1,1,dim)
+        
         gp = SingleTaskGP(X_obs, y_obs)
         mll = ExactMarginalLogLikelihood(gp.likelihood, gp)
         fit_gpytorch_model(mll)
-
-        #eval acquisition function
         best_f = torch.max(y_obs)
         acq = self.get_acquisition( gp=gp, best_f=best_f)
-        eval_acq = acq( X_pen).detach().numpy()
-        
-        return np.argmax(eval_acq)
+
+        if X_pen is not None:
+            #eval acquisition function
+            X_pen = torch.FloatTensor(X_pen).reshape(-1,1,dim)
+            eval_acq = acq( X_pen).detach().numpy()
+            
+            return np.argmax(eval_acq)
+
+        else:
+            dim = len(X_obs[0])
+            bounds = tuple([(0,1) for _ in range(dim)])
+            bounds = torch.FloatTensor(bounds).T
+            candidates, _ = optimize_acqf(
+            acq_function=acq,
+            bounds=bounds,
+            q=1,
+            num_restarts=20,
+            options={"batch_limit": 5, "maxiter": 200},
+            raw_samples=100,
+            )
+            # observe new values 
+            new_x = candidates.detach()
+            return new_x.numpy()
 
 
 

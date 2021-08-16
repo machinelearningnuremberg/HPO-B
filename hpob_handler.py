@@ -1,13 +1,15 @@
 import numpy as np
 import json
 import os
+import xgboost as xgb
 
 
 class HPOBHandler:
 
-    def __init__(self, root_dir = "", mode = "v3-test"):
+    def __init__(self, root_dir = "hpob-data/", mode = "v3-test", surrogates_dir="saved-surrogates/"):
         print("Loading HPO-B handler")
         self.mode = mode
+        self.surrogates_dir = surrogates_dir
 
         if self.mode == "v3-test":
             self.load_data(root_dir, only_test=True)
@@ -17,6 +19,12 @@ class HPOBHandler:
             self.load_data(root_dir, version = self.mode, only_test=False)
         else:
             raise ValueError("Provide a valid mode")
+
+        surrogates_file = surrogates_dir+"summary-stats.json"
+        if os.path.isfile(surrogates_file):
+            with open(surrogates_file) as f:
+                self.surrogates_stats = json.load(f)
+
 
     def load_data(self, rootdir="", version = "v3", only_test = True, augmented_train = False):
 
@@ -63,9 +71,12 @@ class HPOBHandler:
             self.meta_test_data = temp_data     
 
 
-    def normalize(self, y):
+    def normalize(self, y, y_min = None, y_max=None):
 
-        return (y-np.min(y))/(np.max(y)-np.min(y))
+        if y_min is None:
+            return (y-np.min(y))/(np.max(y)-np.min(y))
+        else:
+            return(y-y_min)/(y_max-y_min)
 
     def evaluate (self, bo_method = None, search_space_id = None, dataset_id = None, seed = None, n_trials = 10):
 
@@ -100,6 +111,56 @@ class HPOBHandler:
             current_evaluations.append(idx)
             max_accuracy_history.append(np.max(y[current_evaluations]))
         
+        return max_accuracy_history
+
+    def evaluate_continuous(self, bo_method = None, search_space_id = None, dataset_id = None, seed = None, n_trials = 10):
+
+        assert bo_method!=None, "Provide a valid method object for evaluation."
+        assert hasattr(bo_method, "observe_and_suggest"), "The provided  object does not have a method called ´observe_and_suggest´"
+        assert search_space_id!= None, "Provide a valid search space id. See documentatio for valid obptions."
+        assert dataset_id!= None, "Provide a valid dataset_id. See documentation for valid options."
+        assert seed!=None, "Provide a valid initialization. Valid options are: test0, test1, test2, test3, test4."       
+
+        surrogate_name='surrogate-'+search_space_id+'-'+dataset_id
+        bst_surrogate = xgb.Booster()
+        bst_surrogate.load_model(self.surrogates_dir+surrogate_name+'.json')
+
+        n_initial_evaluations = 5
+        X = np.array(self.meta_test_data[search_space_id][dataset_id]["X"])
+        y = np.array(self.meta_test_data[search_space_id][dataset_id]["y"])
+        y_min = self.surrogates_stats[surrogate_name]["y_min"]
+        y_max = self.surrogates_stats[surrogate_name]["y_max"]
+        dim = X.shape[1]
+
+        current_evaluations = []        
+
+        init_ids = self.bo_initializations[search_space_id][dataset_id][seed]
+        
+        for i in range(n_initial_evaluations):
+            idx = init_ids[i]
+            current_evaluations.append(idx)
+        
+        x_observed = X[current_evaluations]
+        y_observed = y[current_evaluations]
+
+        max_accuracy_history = []
+
+        for i in range(n_trials):
+            y_tf_observed = self.normalize(y_observed, y_min, y_max)
+            y_tf_observed = np.clip(y_tf_observed, 0, 1)
+            best_f = np.max(y_tf_observed)
+            max_accuracy_history.append(best_f)
+
+            new_x = bo_method.observe_and_suggest(x_observed, y_tf_observed)
+            x_q = xgb.DMatrix(new_x.reshape(-1,dim))
+            new_y = bst_surrogate.predict(x_q)
+
+            y_observed = np.append(y_observed, new_y).reshape(-1,1)
+            x_observed = np.append(x_observed, new_x).reshape(-1,x_observed.shape[1])
+
+        y_tf_observed = self.normalize(y_observed, y_min, y_max)
+        y_tf_observed = np.clip(y_tf_observed, 0, 1)
+        max_accuracy_history.append(best_f)
         return max_accuracy_history
 
     def get_search_spaces(self):

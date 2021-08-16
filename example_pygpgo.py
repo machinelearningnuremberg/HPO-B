@@ -8,7 +8,7 @@ seeds = ["test0", "test1", "test2", "test3", "test4"]
 acc_list = []
 n_trials = 20
 
-hpob_hdlr = HPOBHandler(root_dir="../hpob-data/", mode="test")
+hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="test-v3")
 search_space_id =  hpob_hdlr.get_search_spaces()[0]
 dataset_id = hpob_hdlr.get_datasets(search_space_id)[0]
 
