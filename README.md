@@ -88,7 +88,7 @@ dataset_id = hpob_hdlr.get_datasets(search_space_id)[1]
 
 method = RandomSearch()
 
-#Alternatively, for a continuous search space: acc = hpob_hdlr.evaluate_cotinuous(...)
+#Alternatively, for a continuous search space: acc = hpob_hdlr.evaluate_continuous(...)
 acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 
                                         dataset_id = dataset_id,
                                         seed = "test0",
