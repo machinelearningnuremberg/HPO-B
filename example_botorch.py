@@ -20,10 +20,9 @@ for acq_name in valid_acquisitions:
 
         #define the HPO method
         method = GaussianProcess(acq_name=acq_name)
-        method = RandomSearch()
 
         #evaluate the HPO method
-        acc = hpob_hdlr.evaluate_continuous(method, search_space_id = search_space_id, 
+        acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 
                                                 dataset_id = dataset_id,
                                                 seed = seed,
                                                 n_trials = n_trials )
