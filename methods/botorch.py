@@ -66,12 +66,12 @@ class GaussianProcess:
             bounds = tuple([(0,1) for _ in range(dim)])
             bounds = torch.FloatTensor(bounds).T
             candidates, _ = optimize_acqf(
-            acq_function=acq,
-            bounds=bounds,
-            q=1,
-            num_restarts=20,
-            options={"batch_limit": 5, "maxiter": 200},
-            raw_samples=100,
+                acq_function=acq,
+                bounds=bounds,
+                q=1,
+                num_restarts=20,
+                options={"batch_limit": 5, "maxiter": 200},
+                raw_samples=100,
             )
             # observe new values 
             new_x = candidates.detach()
