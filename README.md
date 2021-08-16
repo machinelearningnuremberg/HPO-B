@@ -80,7 +80,8 @@ from hpob_handler import HPOBHandler
 from methods.random_search import RandomSearch
 import matplotlib.pyplot as plt
 
-#Alternatively, for a continuous search space: hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="v3-test", surrogates_dir="saved-surrogates/")
+#Alternatively, for a continuous search space: 
+#hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="v3-test", surrogates_dir="saved-surrogates/")
 hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="v3-test")
 
 search_space_id =  hpob_hdlr.get_search_spaces()[0]
