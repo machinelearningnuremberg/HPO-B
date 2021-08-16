@@ -45,10 +45,34 @@ acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id,
 * The five valid seeds identifiers are: "test0", "test1", "test2", "test3", "test4".
 * The search spaces ID and datasets ID available to evaluate can be queried by using the functions `get_search_spaces()` and `get_datasets()` of the HPOB handler.
 
+## Usage with surrogates (continuous search-spaces)
+
+With HPO-B, Tt is possible to perform the optimization in a continuous serch-space by using surrogates that approximate the real response function. The surrogates ware XGBoost models trained on the discrete data. If you want to perform the benchmarking on continunous search-spaces, follow these steps:
+
+* Download this repo and the [meta-dataset](https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL/download/hpob-data.zip).
+* Download the surrogate models from this [link](https://rewind.tf.uni-freiburg.de/index.php/s/69roMwNpG53sYoe/download/saved-surrogates.zip).
+* Install XGBoost.
+* Create a class that encapsulates the new HPO method. The class should have a function called `observe_and_suggest` that will be called by `HPOBHandler` object, the class for loading the data and evaluating the method.
+* This function receives two parameters *X_obs, y_obs* that represent the observed hyperparameter configurations. It should return the index of the next sample to evaluate on the surrogate that approximates the response fuction. The valid range of the new sample is between 0 and 1 for all the components of the vector.
+* Create a HPOBHandler object by specifying the path to the meta-dataset and the mode.
+
+```python
+hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="v3-test", surrogates_dir="saved-surrogates/")
+
+```
+* Evaluate the new method by using the function `evaluate_continuous` of the HPOB handler. The function receives the HPO algorithm class (`method`), the search space ID, dataset ID, the seed ID and the number of optimization trials.
+```python
+acc = hpob_hdlr.evaluate_continuous(method, search_space_id = search_space_id, 
+                                        dataset_id = dataset_id,
+                                        seed = "test0",
+                                        n_trials = 100 )
+```
+
 ## Requirements
 * Python 3.7
 * botorch (optional for running advanced examples)
 * pyGPGO (optional for running advanced examples)
+* XGBoost (option for using the surrogates for a continuous search space)
 
 ## Basic example
 ```python
@@ -56,12 +80,16 @@ from hpob_handler import HPOBHandler
 from methods.random_search import RandomSearch
 import matplotlib.pyplot as plt
 
+#Alternatively, for a continuous search space: 
+#hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="v3-test", surrogates_dir="saved-surrogates/")
 hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="v3-test")
 
 search_space_id =  hpob_hdlr.get_search_spaces()[0]
 dataset_id = hpob_hdlr.get_datasets(search_space_id)[1]
 
 method = RandomSearch()
+
+#Alternatively, for a continuous search space: acc = hpob_hdlr.evaluate_continuous(...)
 acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 
                                         dataset_id = dataset_id,
                                         seed = "test0",
