@@ -131,9 +131,7 @@ class HPOBHandler:
         y_min = self.surrogates_stats[surrogate_name]["y_min"]
         y_max = self.surrogates_stats[surrogate_name]["y_max"]
         dim = X.shape[1]
-
         current_evaluations = []        
-
         init_ids = self.bo_initializations[search_space_id][dataset_id][seed]
         
         for i in range(n_initial_evaluations):
@@ -161,6 +159,7 @@ class HPOBHandler:
         y_tf_observed = self.normalize(y_observed, y_min, y_max)
         y_tf_observed = np.clip(y_tf_observed, 0, 1)
         max_accuracy_history.append(best_f)
+        
         return max_accuracy_history
 
     def get_search_spaces(self):

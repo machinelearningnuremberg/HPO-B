@@ -75,6 +75,7 @@ class GaussianProcess:
             )
             # observe new values 
             new_x = candidates.detach()
+            
             return new_x.numpy()
 
 
