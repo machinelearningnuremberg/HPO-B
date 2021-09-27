@@ -74,9 +74,9 @@ acc = hpob_hdlr.evaluate_continuous(method, search_space_id = search_space_id,
 * pyGPGO (optional for running advanced examples)
 * XGBoost (option for using the surrogates for a continuous search space)
 
-## Basic example for benchmarking a new algorithm
+## Basic example
 
-Now we will explain how to create a new class that implements a method to evaluate on HPO-B.
+Now we will explain how to create a new class that implements an algorithm to evaluate on HPO-B.
 
 ### 1. HPO algorithm class
 
