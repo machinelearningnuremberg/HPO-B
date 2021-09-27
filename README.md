@@ -150,7 +150,7 @@ class RandomSearch:
             return x_new
 ```
 
-### 3. Use the new class with the HPOBHandler
+### 3. Use the new class with the `HPOBHandler` 
 
 Once we created the class, we can use it on the HPOBHandler, which will call our method `observe_and_suggest` to sucessively benchmark our new algorithm.
 
