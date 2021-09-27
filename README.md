@@ -76,6 +76,8 @@ acc = hpob_hdlr.evaluate_continuous(method, search_space_id = search_space_id,
 
 ## Basic example
 
+Now we will explain how to create a new class that implements a method to evaluate on HPO-B.
+
 ### 1. HPO algorithm class
 
 For creating a new method, we firstly create a python class, with a constructor and class method called `observe_and_suggest`. In general, the function receives three arguments: 
