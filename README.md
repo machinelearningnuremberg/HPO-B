@@ -76,7 +76,7 @@ acc = hpob_hdlr.evaluate_continuous(method, search_space_id = search_space_id,
 
 ## Basic example
 
-Now we will explain how to create a new class that implements an algorithm to evaluate on HPO-B.
+Now we will explain how to create a class wrapper for a new algorithm and how to evaluate it on HPO-B.
 
 ### 1. HPO algorithm class
 
