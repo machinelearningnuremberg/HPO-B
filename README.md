@@ -11,7 +11,7 @@ The meta-dataset contains evaluations of the accuracy for different search-space
 
 **The HPO-B benchmark meta-dataset is available  [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL/download/hpob-data.zip)**.
 
-**Additionally, if you wish to test on continuous search spaces, download the surrogates [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/69roMwNpG53sYoe/download/saved-surrogates.zip)**.
+**Additionally, if you wish to test on continuous search spaces, download the surrogates [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/s5KsjrRiKDSZWnj/download/saved-surrogates.zip)**.
 ## Usage
 
 Before testing a new algorithm:
@@ -50,7 +50,7 @@ acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id,
 With HPO-B, Tt is possible to perform the optimization in a continuous serch-space by using surrogates that approximate the real response function. The surrogates ware XGBoost models trained on the discrete data. If you want to perform the benchmarking on continunous search-spaces, follow these steps:
 
 * Download this repo and the [meta-dataset](https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL/download/hpob-data.zip).
-* Download the surrogate models from this [link](https://rewind.tf.uni-freiburg.de/index.php/s/69roMwNpG53sYoe/download/saved-surrogates.zip).
+* Download the surrogate models from this [link](https://rewind.tf.uni-freiburg.de/index.php/s/s5KsjrRiKDSZWnj/download/saved-surrogates.zip). Every surrogate is an XGBoost model, whose name follows the pattern: "surrogate-[search_space_id]+[task_id].json".
 * Install XGBoost.
 * Create a class that encapsulates the new HPO method. The class should have a function called `observe_and_suggest` that will be called by `HPOBHandler` object, the class for loading the data and evaluating the method.
 * This function receives two parameters *X_obs, y_obs* that represent the observed hyperparameter configurations. It should return the index of the next sample to evaluate on the surrogate that approximates the response fuction. The valid range of the new sample is between 0 and 1 for all the components of the vector.
@@ -103,6 +103,19 @@ plt.plot(acc)
 For more advanced examples on how to use more methods and fully evaluate a search space using all the seeds, refer to the files `example_botorch.py` or `example_pygpgo.py`.
 
 
+## Meta-dataset Format
+
+As described in the paper, the meta-dataset follows a JavaScript Object Notation (JSON) to encapsulate the evaluations. In Python, this corresponds to nested dictionaries, where the first level key corresponds to the **search space ID**, the second level key contains the **dataset ID**, and finally the last level contains the list of hyperparameter configurations (**X**) and its response (**y**).
+
+
+```python
+meta_dataset = { "search_space_id_1" : { "dataset_id_1": {"X": [[1,1], [0,2]],
+                                                  "y": [[0.9], [0.1]]},
+                               { "dataset_id_2": ... },
+                 "search_space_id_2" : ...
+                                
+                }
+```
 ## Cite us
 ```
 @misc{arango2021hpob,
