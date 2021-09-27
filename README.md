@@ -75,6 +75,37 @@ acc = hpob_hdlr.evaluate_continuous(method, search_space_id = search_space_id,
 * XGBoost (option for using the surrogates for a continuous search space)
 
 ## Basic example
+
+### 1. HPO algorithm class
+
+For creating a new method, we firstly create a python class, with a constructor and class method called `observe_and_suggest`. In general, the function receives three arguments: 
+
+* `X_obs`: a list of list with the observed configurations. For instance, two observed configurations with three hyperparameters would look like `[[1,2,3],[4,5,6]]`.
+* `y_obs`: a list of list with the observed responses. For instnace, tthe responses for two configurations looks like `[[0.9], [0.7]]`.
+* `X_pen`: a list of list with the pending configurations to evaluate. For instance, two pending configurations with three hyperparameters would look like `[[1,2,3],[4,5,6]]`.
+Alternatively, X_pen could be `None`, in case of using the continuous search space. Therefore, this functionality should be implemented when using the XGBoost surrogates.
+
+
+```python
+class RandomSearch:
+
+    def __init__(self):
+
+      print("Using random search method...")
+
+    def observe_and_suggest(self, X_obs, y_obs, X_pen=None):
+      
+      if X_pen not None:
+        # code for discrete search space
+        
+      else:
+        # code for continuous search space
+```
+### 2. `observe_and_suggest` method from the algorithm class
+
+
+
+
 ```python
 from hpob_handler import HPOBHandler
 from methods.random_search import RandomSearch
