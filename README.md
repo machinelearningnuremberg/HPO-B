@@ -103,10 +103,27 @@ class RandomSearch:
       else:
         # code for continuous search space
 ```
-### 2. `observe_and_suggest` method from the algorithm class
+### 2. `observe_and_suggest` method 
+
+As indicated previously, `observe_and_suggest` have two possible funcional modes, depending on whether `X_pen` is specified or not. In case it is specified, it is assumed to be using the discrete benchmark, therefore, it should return the index of the next configuration to evaluate from the list of configurations specified by `X_pen`. For a random search implementation, this means to select randomly a value between 0 and the number of pending configurations:
 
 
+```python
+size_pending_eval = len(X_pen)
+idx = random.randint(0, size_pending_eval-1)
+return idx
 
+```
+
+When it is not specified, it is assumed to use the continuous benchmark, therefore the output should be a list (sample) with the same dimensionality as a the observed samples `X_obs`. Moreover, given the characteristics of the benchmark, the values should be between 0 and 1.
+
+```python
+dim = len(X_obs[0])
+bounds = tuple([(0,1) for i in range(dim)])
+x_new = np.array([random.uniform(lower, upper) for upper, lower in bounds]).reshape(-1, dim)
+
+return x_new
+```
 
 ```python
 from hpob_handler import HPOBHandler
