@@ -116,6 +116,10 @@ meta_dataset = { "search_space_id_1" : { "dataset_id_1": {"X": [[1,1], [0,2]],
                                 
                 }
 ```
+## Extending the benchmark
+
+In the folder `meta-dataset-creation`, we provide the code of the full benchmark extraction (`data_extraction.py`) and an example of preprocessing for a single search space. Based on this, it is possible for any user to add new search spaces (called flows in OpenML) Also, it is possible to download existing search spaces and extend it with new evaluations.
+
 ## Cite us
 ```
 @misc{arango2021hpob,
