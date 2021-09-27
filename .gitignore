@@ -3,3 +3,5 @@ __pycache__/
 methods/__pycache__/
 saved-surrogates/
 hpob-data/
+results/
+results.zip
