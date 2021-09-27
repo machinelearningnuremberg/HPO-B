@@ -103,6 +103,19 @@ plt.plot(acc)
 For more advanced examples on how to use more methods and fully evaluate a search space using all the seeds, refer to the files `example_botorch.py` or `example_pygpgo.py`.
 
 
+## Meta-dataset Format
+
+As described in the paper, the meta-dataset follows a JavaScript Object Notation (JSON) to encapsulate the evaluations. In Python, this corresponds to nested dictionaries, where the first level key corresponds to the **search space ID**, the second level key contains the **dataset ID**, and finally the last level contains the list of hyperparameter configurations (**X**) and its response (**y**).
+
+
+```python
+meta_dataset = { "search_space_id_1" : { "dataset_id_1": {"X": [[1,1], [0,2]],
+                                                  "y": [[0.9], [0.1]]},
+                               { "dataset_id_2": ... },
+                 "search_space_id_2" : ...
+                                
+                }
+
 ## Cite us
 ```
 @misc{arango2021hpob,
