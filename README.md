@@ -3,7 +3,7 @@ HPO-B is a benchmark for assessing the performance of black-box HPO algorithms. 
 
 ## Meta-Dataset 
 
-The meta-dataset contains evaluations of the accuracy for different search-spaces on different datasets. For more details on the meta-dataset, refer to our [paper](https://arxiv.org/pdf/2106.06257.pdf) . It is presented in three versions:
+The meta-dataset contains evaluations of the accuracy for different search-spaces on different datasets. For more details on the meta-dataset, refer to our [paper](https://arxiv.org/pdf/2106.06257.pdf). It is presented in three versions:
 
 - **HPO-B-v1**: The raw benchmark of all 176 meta-datasets.
 - **HPO-B-v2**: Subset of 16 meta-datasets with the most frequent search spaces.
@@ -72,9 +72,88 @@ acc = hpob_hdlr.evaluate_continuous(method, search_space_id = search_space_id,
 * Python 3.7
 * botorch (optional for running advanced examples)
 * pyGPGO (optional for running advanced examples)
-* XGBoost (option for using the surrogates for a continuous search space)
+* XGBoost (option for using the surrogates on a continuous search space)
 
 ## Basic example
+
+Now we will explain how to create a class wrapper for a new algorithm and how to evaluate it on HPO-B.
+
+### 1. HPO algorithm class
+
+For creating a new method, we firstly create a python class, with a constructor and class method called `observe_and_suggest`. In general, the function receives three arguments: 
+
+* `X_obs`: a list of list with the observed configurations. For instance, two observed configurations with three hyperparameters would look like `[[1,2,3],[4,5,6]]`.
+* `y_obs`: a list of list with the observed responses. For instnace, tthe responses for two configurations looks like `[[0.9], [0.7]]`.
+* `X_pen`: a list of list with the pending configurations to evaluate. For instance, two pending configurations with three hyperparameters would look like `[[1,2,3],[4,5,6]]`.
+Alternatively, X_pen could be `None`, in case of using the continuous search space. Therefore, this functionality should be implemented when using the XGBoost surrogates.
+
+
+```python
+class RandomSearch:
+
+    def __init__(self):
+
+      print("Using random search method...")
+
+    def observe_and_suggest(self, X_obs, y_obs, X_pen=None):
+      
+      if X_pen not None:
+        # code for discrete search space
+        
+      else:
+        # code for continuous search space
+```
+### 2. `observe_and_suggest` method 
+
+As indicated previously, `observe_and_suggest` have two possible funcional modes, depending on whether `X_pen` is specified or not. In case it is specified, it is assumed to be using the discrete benchmark, therefore, it should return the index of the next configuration to evaluate from the list of configurations specified by `X_pen`. For a random search implementation, this means to select randomly a value between 0 and the number of pending configurations:
+
+
+```python
+size_pending_eval = len(X_pen)
+idx = random.randint(0, size_pending_eval-1)
+return idx
+
+```
+When it is not specified, it is assumed to use the continuous benchmark, therefore the output should be a list (sample) with the same dimensionality as a the observed samples `X_obs`. Moreover, given the characteristics of the benchmark, the values should be between 0 and 1.
+
+```python
+dim = len(X_obs[0])
+bounds = tuple([(0,1) for i in range(dim)])
+x_new = np.array([random.uniform(lower, upper) for upper, lower in bounds]).reshape(-1, dim)
+return x_new
+```
+
+Now, we can summarize our new HPO algorithm class (Random Search in this example) as:
+
+```python
+import random
+import numpy as np
+
+class RandomSearch:
+
+    def __init__(self):
+
+        print("Using random search method...")
+
+    def observe_and_suggest(self, X_obs, y_obs, X_pen=None):
+
+        if X_pen is not None:
+            size_pending_eval = len(X_pen)
+            idx = random.randint(0, size_pending_eval-1)
+            return idx
+
+        else:
+            dim = len(X_obs[0])
+            bounds = tuple([(0,1) for i in range(dim)])
+            x_new = np.array([random.uniform(lower, upper) for upper, lower in bounds]).reshape(-1, dim)
+
+            return x_new
+```
+
+### 3. Use the new class with the `HPOBHandler` 
+
+Once we created the class, we can use it on the HPOBHandler, which will call our method `observe_and_suggest` to sucessively benchmark our new algorithm.
+
 ```python
 from hpob_handler import HPOBHandler
 from methods.random_search import RandomSearch
@@ -103,7 +182,7 @@ plt.plot(acc)
 For more advanced examples on how to use more methods and fully evaluate a search space using all the seeds, refer to the files `example_botorch.py` or `example_pygpgo.py`.
 
 
-## Meta-dataset Format
+## Meta-dataset format
 
 As described in the paper, the meta-dataset follows a JavaScript Object Notation (JSON) to encapsulate the evaluations. In Python, this corresponds to nested dictionaries, where the first level key corresponds to the **search space ID**, the second level key contains the **dataset ID**, and finally the last level contains the list of hyperparameter configurations (**X**) and its response (**y**).
 
@@ -116,6 +195,10 @@ meta_dataset = { "search_space_id_1" : { "dataset_id_1": {"X": [[1,1], [0,2]],
                                 
                 }
 ```
+## Extending the benchmark
+
+In the folder `meta-dataset-creation`, we provide the code of the full benchmark extraction (`data_extraction.py`) and an example of preprocessing for a single search space. Based on this, it is possible for any user to add new search spaces (called flows in OpenML) Also, it is possible to download existing search spaces and extend it with new evaluations.
+
 ## Cite us
 ```
 @misc{arango2021hpob,
