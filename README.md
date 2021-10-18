@@ -209,4 +209,19 @@ In the folder `meta-dataset-creation`, we provide the code of the full benchmark
       archivePrefix={arXiv},
       primaryClass={cs.LG}
 }
+
+
+
+@article{pineda2021hpob,
+  author    = {Sebastian Pineda{-}Arango and
+               Hadi S. Jomaa and
+               Martin Wistuba and
+               Josif Grabocka},
+  title     = {{HPO-B:} {A} Large-Scale Reproducible Benchmark for Black-Box {HPO}
+               based on OpenML},
+  journal   = {Neural Information Processing Systems (NeurIPS) Track on Datasets and Benchmarks},
+  year      = {2021}
+}
+
+
 ```
