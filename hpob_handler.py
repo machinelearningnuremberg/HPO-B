@@ -25,6 +25,7 @@ class HPOBHandler:
         print("Loading HPO-B handler")
         self.mode = mode
         self.surrogates_dir = surrogates_dir
+        self.seeds = ["test0", "test1", "test2", "test3", "test4"]
 
         if self.mode == "v3-test":
             self.load_data(root_dir, only_test=True)
@@ -39,6 +40,9 @@ class HPOBHandler:
         if os.path.isfile(surrogates_file):
             with open(surrogates_file) as f:
                 self.surrogates_stats = json.load(f)
+
+        
+
 
 
     def load_data(self, rootdir="", version = "v3", only_test = True, augmented_train = False):
@@ -140,7 +144,7 @@ class HPOBHandler:
             pending_evaluations.remove(idx)
             current_evaluations.append(idx)
 
-        max_accuracy_history = []
+        max_accuracy_history = [np.max(y[current_evaluations])]
         for i in range(n_trials):
 
             idx = bo_method.observe_and_suggest(X[current_evaluations], y[current_evaluations], X[pending_evaluations])
@@ -218,3 +222,6 @@ class HPOBHandler:
 
     def get_datasets(self, search_space):
         return list(self.meta_test_data[search_space].keys())
+
+    def get_seeds(self):
+        return self.seeds

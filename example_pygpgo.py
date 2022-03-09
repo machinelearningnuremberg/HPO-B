@@ -8,7 +8,7 @@ seeds = ["test0", "test1", "test2", "test3", "test4"]
 acc_list = []
 n_trials = 20
 
-hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="test-v3")
+hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="v3-test")
 search_space_id =  hpob_hdlr.get_search_spaces()[0]
 dataset_id = hpob_hdlr.get_datasets(search_space_id)[0]
 
@@ -23,7 +23,7 @@ for acq_name in valid_acquisitions:
         #evaluate the HPO method
         acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 
                                                 dataset_id = dataset_id,
-                                                trial = seed,
+                                                seed = seed,
                                                 n_trials = n_trials )
         acc_per_method.append(acc)
 
