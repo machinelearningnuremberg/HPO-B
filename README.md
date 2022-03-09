@@ -201,12 +201,16 @@ In the folder `meta-dataset-creation`, we provide the code of the full benchmark
 
 ## Cite us
 ```
-@misc{arango2021hpob,
-      title={HPO-B: A Large-Scale Reproducible Benchmark for Black-Box HPO based on OpenML}, 
-      author={Sebastian Pineda Arango and Hadi S. Jomaa and Martin Wistuba and Josif Grabocka},
-      year={2021},
-      eprint={2106.06257},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG}
+
+@article{pineda2021hpob,
+  author    = {Sebastian Pineda{-}Arango and
+               Hadi S. Jomaa and
+               Martin Wistuba and
+               Josif Grabocka},
+  title     = {{HPO-B:} {A} Large-Scale Reproducible Benchmark for Black-Box {HPO}
+               based on OpenML},
+  journal   = {Neural Information Processing Systems (NeurIPS) Track on Datasets and Benchmarks},
+  year      = {2021}
 }
+
 ```
