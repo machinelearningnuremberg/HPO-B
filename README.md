@@ -152,7 +152,7 @@ class RandomSearch:
 
 ### 3. Use the new class with the `HPOBHandler` 
 
-Once we created the class, we can use it on the HPOBHandler, which will call our method `observe_and_suggest` to sucessively benchmark our new algorithm.
+Once we created the class, we can use it on the HPOBHandler, which will call our method `observe_and_suggest` to benchmark our new algorithm. It returns a list with the incumbent's accuracy at every HPO iteration.
 
 ```python
 from hpob_handler import HPOBHandler
@@ -198,6 +198,21 @@ meta_dataset = { "search_space_id_1" : { "dataset_id_1": {"X": [[1,1], [0,2]],
 ## Extending the benchmark
 
 In the folder `meta-dataset-creation`, we provide the code of the full benchmark extraction (`data_extraction.py`) and an example of preprocessing for a single search space. Based on this, it is possible for any user to add new search spaces (called flows in OpenML) Also, it is possible to download existing search spaces and extend it with new evaluations.
+
+## Generating benchmark plots
+
+If you want to compare a new model to the results in our [paper](https://arxiv.org/pdf/2106.06257.pdf), you should generate a list of incumbents accuracy for every search-space, dataset and seed combination and wrap the results in a JSON file with the following structure:
+
+```python
+new_model_results = { "search_space_id_1" : { "dataset_id_1": {"test0": [0.85, 0.9,...],
+                                                                "test1": ...}
+                                            { "dataset_id_2": ... },
+                      "search_space_id_2" : ...
+                                
+                    }
+```
+
+Afterwards, you can use the `BenchmarkPlotter` class from `benchmark_plot.py`. A complete example can be found in `example_benchmark.py`.
 
 ## Cite us
 ```
