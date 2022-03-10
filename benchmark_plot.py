@@ -8,8 +8,8 @@ from matplotlib.ticker import MaxNLocator
 class BenchmarkPlotter:
 
     def __init__(self, experiments=None, seeds = None, draw_std=True, draw_per_space=True, max_bo_iters = 101, 
-                    name="benchmark_plot", output_path="results/plots/", 
-                    results_path = "results/selected_results/", data_path = "data/hpob-data/"):
+                    name="benchmark_plot", output_path="plots/", 
+                    results_path = "results/", data_path = "hpob-data/"):
         
         super(BenchmarkPlotter, self).__init__()
 
@@ -185,9 +185,11 @@ if __name__=="__main__":
     data_path = "hpob-data/"
     results_path = "results/"
     output_path = "plots/"
+    name = "benchmark_plot"
     experiments = ["Random", "FSBO", "TST", "DGP", "RGPE" , "BOHAMIANN", "DNGO", "TAF", "GP"]
 
     benchmark_plotter  = BenchmarkPlotter(experiments=experiments, 
+                                            name = name,
                                             results_path=results_path, 
                                             output_path=output_path, 
                                             data_path = data_path)
