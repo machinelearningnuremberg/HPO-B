@@ -12,8 +12,10 @@ def generate_results (method, results_path, data_path, n_trials):
     results = {}
 
     for search_space_id in hpob_hdlr.get_search_spaces():
+
         if search_space_id not in results.keys():
             results[search_space_id] = {} 
+        
         for dataset_id in hpob_hdlr.get_datasets(search_space_id):
 
             if dataset_id not in results[search_space_id].keys():
