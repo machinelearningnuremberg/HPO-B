@@ -4,17 +4,18 @@ import numpy as np
 import pandas as pd
 from cd_diagram import draw_cd_diagram as draw
 from matplotlib.ticker import MaxNLocator
+from hpob_handler import HPOBHandler
 
 class BenchmarkPlotter:
 
-    def __init__(self, experiments=None, seeds = None, draw_std=True, draw_per_space=True, max_bo_iters = 101, 
+    def __init__(self, experiments=None, seeds = None, draw_std=True, draw_per_space=True, n_trials = 100, 
                     name="benchmark_plot", output_path="plots/", 
                     results_path = "results/", data_path = "hpob-data/"):
         
         super(BenchmarkPlotter, self).__init__()
 
         assert experiments is not None, "Provide the name of the experiments to plot"
-        assert max_bo_iters<102,"The maximum value for max_bo_iters is 101" 
+        assert n_trials<101,"The maximum value for max_bo_iters is 101" 
 
         self.experiments = experiments
         self.seeds = seeds if seeds is not None else ["test0", "test1", "test2", "test3", "test4"]
@@ -24,7 +25,7 @@ class BenchmarkPlotter:
         self.name = name
         self.results_path = results_path
         self.data_path = data_path
-        self.max_bo_iters = max_bo_iters
+        self.n_trials = n_trials + 1
 
         self.load_results()
 
@@ -108,7 +109,7 @@ class BenchmarkPlotter:
 
                     for experiment in self.experiments:
                         try:
-                            regret = [1-x for x in  self.results[experiment][search_space][task][seed]][:self.max_bo_iters]
+                            regret = [1-x for x in  self.results[experiment][search_space][task][seed]][:self.n_trials]
                             
                             task_seed_results.append(regret)
                         except Exception as e:
@@ -178,6 +179,37 @@ class BenchmarkPlotter:
         df.columns = ["dataset_name", "classifier_name", "accuracy"]
         df.accuracy = -df.accuracy
         draw(df, path_name= path+name+".png", title=name)
+
+
+    def generate_results (self, method, n_trials, search_spaces=None, seeds=None):
+
+        hpob_hdlr = HPOBHandler(root_dir=self.data_path, mode="v3-test")
+
+        search_spaces = hpob_hdlr.get_search_spaces() if search_spaces is None else search_spaces
+        seeds = hpob_hdlr.get_seeds() if seeds is None else seeds
+
+        results = {}
+
+        for search_space_id in search_spaces:
+
+            if search_space_id not in results.keys():
+                results[search_space_id] = {} 
+            
+            for dataset_id in hpob_hdlr.get_datasets(search_space_id):
+
+                if dataset_id not in results[search_space_id].keys():
+                    results[search_space_id][dataset_id] = {} 
+
+                for seed in seeds:
+
+                    results[search_space_id][dataset_id][seed]  = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 
+                                                            dataset_id = dataset_id,
+                                                            seed = seed,
+                                                            n_trials = n_trials )
+                                                        
+
+        with open(self.results_path, "w") as f:
+            json.dump(results, f)
 
 
 if __name__=="__main__":
