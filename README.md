@@ -72,7 +72,8 @@ acc = hpob_hdlr.evaluate_continuous(method, search_space_id = search_space_id,
 * Python 3.7
 * botorch (optional for running advanced examples)
 * pyGPGO (optional for running advanced examples)
-* XGBoost (option for using the surrogates on a continuous search space)
+* XGBoost (optional for using the surrogates on a continuous search space)
+* networkx (optional for using the `BenchmarkPlotter`
 
 ## Basic example
 
