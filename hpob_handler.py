@@ -99,6 +99,13 @@ class HPOBHandler:
             self.meta_validation_data = None                
             self.meta_test_data = temp_data     
 
+        self.search_space_dims = {}
+
+        for search_space in self.meta_test_data.keys():
+            dataset = list(self.meta_test_data[search_space].keys())[0]
+            X = self.meta_test_data[search_space][dataset]["X"][0]
+            self.search_space_dims[search_space] = len(X)
+
 
     def normalize(self, y, y_min = None, y_max=None):
 
@@ -225,3 +232,7 @@ class HPOBHandler:
 
     def get_seeds(self):
         return self.seeds
+
+    def get_search_space_dim(self, search_space):
+
+        return self.search_space_dims[search_space]
