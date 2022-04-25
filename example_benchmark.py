@@ -12,7 +12,7 @@ if __name__ == "__main__":
     results_path = "results/"
     output_path = "plots/"
     name = "RF_benchmark"
-    results_name = "RF.json"
+    new_method_name = "RF.json"
     experiments = ["Random", "FSBO", "TST", "DGP", "RGPE" , "BOHAMIANN", "DNGO", "TAF", "GP"]
     n_trials = 5
 
@@ -25,6 +25,6 @@ if __name__ == "__main__":
                                             output_path = output_path, 
                                             data_path = data_path)
 
-    benchmark_plotter.generate_results(method, n_trials)
+    benchmark_plotter.generate_results(method, n_trials, new_method_name)
     benchmark_plotter.plot()
     benchmark_plotter.draw_cd_diagram(bo_iter=5, name="Rank@5")

@@ -181,7 +181,7 @@ class BenchmarkPlotter:
         draw(df, path_name= path+name+".png", title=name)
 
 
-    def generate_results (self, method, n_trials, search_spaces=None, seeds=None):
+    def generate_results (self, method, n_trials, new_method_name, search_spaces=None, seeds=None):
 
         hpob_hdlr = HPOBHandler(root_dir=self.data_path, mode="v3-test")
 
@@ -208,7 +208,7 @@ class BenchmarkPlotter:
                                                             n_trials = n_trials )
                                                         
 
-        with open(self.results_path, "w") as f:
+        with open(self.results_path+new_method_name, "w") as f:
             json.dump(results, f)
 
 
