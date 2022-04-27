@@ -10,7 +10,7 @@ class BenchmarkPlotter:
 
     def __init__(self, experiments=None, seeds = None, draw_std=True, draw_per_space=True, n_trials = 100, 
                     name="benchmark_plot", output_path="plots/", 
-                    results_path = "results/", data_path = "hpob-data/"):
+                    results_path = "results/", data_path = "data/"):
         
         super(BenchmarkPlotter, self).__init__()
 
@@ -29,10 +29,10 @@ class BenchmarkPlotter:
 
         self.load_results()
 
-        with open(data_path+"meta-test-dataset.json", "r") as f:
-            self.hpo_data = json.load(f) 
+        with open(data_path+"meta-test-tasks-per-space.json", "r") as f:
+            self.task_list_per_space = json.load(f) 
 
-        self.search_spaces = list(self.hpo_data.keys())
+        self.search_spaces = list(self.task_list_per_space.keys())
 
     def plot(self):
 
@@ -102,20 +102,23 @@ class BenchmarkPlotter:
             self.rank_per_space[search_space] = []
             self.regret_per_space[search_space] = []
 
-            for task in self.hpo_data[search_space].keys():
+            for task in self.task_list_per_space[search_space]:
                 for seed in self.seeds:
                     task_seed_results = []
                     complete_results_task_seed =  True
 
                     for experiment in self.experiments:
                         try:
-                            regret = [1-x for x in  self.results[experiment][search_space][task][seed]][:self.n_trials]
+                            regret = [1-x for x in  self.results[experiment][search_space][task][seed]]
+                            
+                            assert len(regret) >= self.n_trials, "The task {} should have length {} in experiment {} for space {} and seed {}".format(task, self.n_trials,  experiment, search_space, seed)
+                            regret = regret[:self.n_trials]
                             
                             task_seed_results.append(regret)
                         except Exception as e:
                             complete_results_task_seed = False
                             print(e)
-                            print("The taks {} was probably not found for experiment {} , search space {} and seed {}".format(task, experiment, search_space, seed))
+                            print("The taks {} was probably not found for experiment {}, search space {} and seed {}".format(task, experiment, search_space, seed))
                     
                     if complete_results_task_seed:
                             rank_df = pd.DataFrame(1-np.array(task_seed_results).round(8)).rank(axis=0, ascending=False)
@@ -139,7 +142,9 @@ class BenchmarkPlotter:
         for i, search_space in enumerate(self.search_spaces):
             index0 = i//4
             index1 = i%4
-            self.make_rank_and_regret_plot(self.rank_per_space[search_space], self.regret_per_space[search_space], axis_rank[index0, index1], axis_regret[index0, index1], title = "Search space No. "+search_space,)
+
+            if len(self.rank_per_space[search_space])>0:
+                self.make_rank_and_regret_plot(self.rank_per_space[search_space], self.regret_per_space[search_space], axis_rank[index0, index1], axis_regret[index0, index1], title = "Search space No. "+search_space,)
 
 
         fig.legend(self.experiments,loc="lower center", bbox_to_anchor=(0.55, -0.05), ncol=5, fontsize=32)
@@ -181,7 +186,7 @@ class BenchmarkPlotter:
         draw(df, path_name= path+name+".png", title=name)
 
 
-    def generate_results (self, method, n_trials, new_method_name, search_spaces=None, seeds=None):
+    def generate_results (self, method, n_trials, new_method_name, search_spaces=None, seeds=None, *args):
 
         hpob_hdlr = HPOBHandler(root_dir=self.data_path, mode="v3-test")
 
@@ -202,6 +207,9 @@ class BenchmarkPlotter:
 
                 for seed in seeds:
 
+                    if hasattr(method, "initialize"):
+                        method.initialize(*args)          
+                              
                     results[search_space_id][dataset_id][seed]  = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 
                                                             dataset_id = dataset_id,
                                                             seed = seed,
