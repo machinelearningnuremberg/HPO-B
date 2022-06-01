@@ -22,9 +22,12 @@ rootdir     = os.path.dirname(os.path.realpath(__file__))
 log_dir     = os.path.join(rootdir,"methods", "fsbo","logs",f"seed-{seed}")
 os.makedirs(log_dir,exist_ok=True)
 log_dir = os.path.join(log_dir, f"{dataset_id}.txt")
+
+#loads pretran model from the checkpoint "FSBO",
+#if checkpoint == None the DeepKernel is randomly initialized 
 checkpoint = os.path.join(rootdir,"methods","fsbo","checkpoints","FSBO", f"{search_space_id}")
 
-#define the HPO method
+#define the DeepKernelGP as HPO method
 method = DeepKernelGP(dim, log_dir, torch_seed , checkpoint = checkpoint, verbose = True)
 
 #evaluate the HPO method
