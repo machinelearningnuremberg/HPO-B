@@ -2,7 +2,11 @@
 __pycache__/
 methods/__pycache__/
 saved-surrogates/
-hpob-data/
+hpob-data/bo-initializations.json
+hpob-data/meta-test-dataset.json
+hpob-data/meta-train-dataset.json
+hpob-data/meta-train-dataset-augmented.json
+hpob-data/meta-validation-dataset.json
 internal-results/
 results.zip
 results/GP_BOTORCH.json

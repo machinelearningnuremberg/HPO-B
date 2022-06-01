@@ -1,0 +1,372 @@
+
+"""
+This FSBO implementation is based on the original implementation from Hadi Samer Jomaa
+for his work on "Transfer Learning for Bayesian HPO with End-to-End Landmark Meta-Features"
+at the NeurIPS 2021 MetaLearning Workshop 
+
+"""
+
+import torch
+import torch.nn as nn
+from sklearn.preprocessing import MinMaxScaler
+import copy 
+import numpy as np
+import os
+from torch.utils.tensorboard import SummaryWriter
+import time
+import gpytorch
+import logging
+from .fsbo_utils import totorch, Metric, EI
+
+np.random.seed(1203)
+RandomQueryGenerator= np.random.RandomState(413)
+RandomSupportGenerator= np.random.RandomState(413)
+RandomTaskGenerator = np.random.RandomState(413)
+
+
+class DeepKernelGP(nn.Module):
+    def __init__(self, input_size, log_dir,seed, hidden_size = [32,32,32,32],
+                         max_patience = 16, kernel="matern", ard = False, nu =2.5, loss_tol = 0.0001,
+                         lr = 0.001, load_model = False, checkpoint = None, epochs = 10000,
+                         verbose = False, eval_batch_size = 1000):
+        super(DeepKernelGP, self).__init__()
+        torch.manual_seed(seed)
+        ## GP parameters
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.feature_extractor = MLP(self.input_size, hidden_size = self.hidden_size).to(self.device)
+        self.kernel_config = {"kernel": kernel, "ard": ard, "nu": nu}
+        self.max_patience = max_patience
+        self.lr  = lr
+        self.load_model = load_model
+        assert checkpoint != None, "Provide a checkpoint"
+        self.checkpoint = checkpoint
+        self.epochs = epochs
+        self.verbose = verbose
+        self.loss_tol = loss_tol
+        self.eval_batch_size = eval_batch_size
+
+        self.get_model_likelihood_mll(1)
+        
+        logging.basicConfig(filename=log_dir, level=logging.DEBUG)
+
+    def get_model_likelihood_mll(self, train_size):
+        
+        train_x=torch.ones(train_size, self.feature_extractor.out_features).to(self.device)
+        train_y=torch.ones(train_size).to(self.device)
+
+        likelihood = gpytorch.likelihoods.GaussianLikelihood()
+        model = ExactGPLayer(train_x=train_x, train_y=train_y, likelihood=likelihood, config=self.kernel_config,dims = self.feature_extractor.out_features)
+        self.model = model.to(self.device)
+        self.likelihood = likelihood.to(self.device)
+        self.mll        = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model).to(self.device)
+
+
+
+    def train(self):
+
+        if self.load_model:
+            assert(self.checkpoint is not None)
+            print("Model_loaded")
+            self.load_checkpoint(os.path.join(self.checkpoint,"weights"))
+            
+
+        losses = [np.inf]
+        best_loss = np.inf
+        starttime = time.time()
+        weights = copy.deepcopy(self.state_dict())
+        patience=0
+        optimizer = torch.optim.Adam([{'params': self.model.parameters(), 'lr': self.lr},
+                                {'params': self.feature_extractor.parameters(), 'lr': self.lr}])
+                    
+        for _ in range(self.epochs):
+            optimizer.zero_grad()
+            z = self.feature_extractor(self.X_obs)
+            self.model.set_train_data(inputs=z, targets=self.y_obs, strict=False)
+            predictions = self.model(z)
+            try:
+                loss = -self.mll(predictions, self.model.train_targets)
+                loss.backward()
+                optimizer.step()
+            except Exception as e:
+                logging.info(f"Exception {e}")
+                break
+            
+            if self.verbose:
+                print("Iter {iter}/{epochs} - Loss: {loss:.5f}   noise: {noise:.5f}".format(
+                    iter=_+1,epochs=self.epochs,loss=loss.item(),noise=self.likelihood.noise.item()))                
+            losses.append(loss.detach().to("cpu").item())
+            if best_loss>losses[-1]:
+                best_loss = losses[-1]
+                weights = copy.deepcopy(self.state_dict())
+            if np.allclose(losses[-1],losses[-2],atol=self.loss_tol):
+                patience+=1
+            else:
+                patience=0
+            if patience>self.max_patience:
+                break
+        self.load_state_dict(weights)
+        logging.info(f"Current Iteration: {len(self.y_obs)} | Incumbent {max(self.y_obs)} | Duration {np.round(time.time()-starttime)} | Epochs {_} | Noise {self.likelihood.noise.item()}")
+        return losses
+    
+    def load_checkpoint(self, checkpoint):
+        ckpt = torch.load(checkpoint,map_location=torch.device(self.device))
+        self.model.load_state_dict(ckpt['gp'],strict=False)
+        self.likelihood.load_state_dict(ckpt['likelihood'],strict=False)
+        self.feature_extractor.load_state_dict(ckpt['net'],strict=False)
+        
+
+    def predict(self, X_pen):
+        
+        self.model.eval()
+        self.feature_extractor.eval()
+        self.likelihood.eval()        
+
+        z_support = self.feature_extractor(self.X_obs).detach()
+        self.model.set_train_data(inputs=z_support, targets=self.y_obs, strict=False)
+
+        with torch.no_grad():
+            z_query = self.feature_extractor(X_pen).detach()
+            pred    = self.likelihood(self.model(z_query))
+
+            
+        mu    = pred.mean.detach().to("cpu").numpy().reshape(-1,)
+        stddev = pred.stddev.detach().to("cpu").numpy().reshape(-1,)
+        
+        return mu,stddev
+
+    def observe_and_suggest(self, X_obs, y_obs, X_pen):
+
+        self.X_obs, self.y_obs, X_pen = totorch(X_obs, self.device), totorch(y_obs, self.device).reshape(-1), totorch(X_pen, self.device)
+        n_samples = len(X_pen)
+        scores = []
+
+        self.train()
+
+        for i in range(self.eval_batch_size, n_samples+self.eval_batch_size, self.eval_batch_size):
+            temp_X = X_pen[range(i-self.eval_batch_size,min(i,n_samples))]
+            mu, stddev = self.predict(temp_X)
+            score   =  EI(max(y_obs), mu, stddev)
+            scores += score.tolist()
+
+        scores = np.array(scores)
+        candidate = np.argmax(scores) 
+
+        return candidate
+
+    
+class FSBO(nn.Module):
+    def __init__(self, train_data,valid_data, checkpoint_path, batch_size = 64, test_batch_size = 64,
+                 n_inner_steps = 1, kernel = "matern", ard = False, nu=2.5, hidden_size = [32,32,32,32] ):
+        super(FSBO, self).__init__()
+        ## GP parameters
+        self.train_data = train_data
+        self.valid_data = valid_data
+        self.batch_size = batch_size
+        self.test_batch_size = test_batch_size
+        self.n_inner_steps = n_inner_steps
+        self.checkpoint_path = checkpoint_path
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        first_dataset = list(self.train_data.keys())[0]
+        self.input_size = len(train_data[first_dataset]["X"][0])
+        self.hidden_size = hidden_size
+        self.feature_extractor =  MLP(self.input_size, hidden_size = self.hidden_size).to(self.device)
+        self.kernel_config = {"kernel": kernel, "ard": ard, "nu": nu}
+        self.get_model_likelihood_mll(self.batch_size)
+        self.mse        = nn.MSELoss()
+        self.curr_valid_loss = np.inf
+        self.get_tasks()
+        self.setup_writers()
+        
+        self.train_metrics = Metric()
+        self.valid_metrics = Metric(prefix="valid: ")
+        os.makedirs(self.checkpoint_path,exist_ok=True)
+        logging.basicConfig(filename=os.path.join(self.checkpoint_path,"log.txt"), level=logging.DEBUG)
+
+        print(self)
+        
+        
+    def setup_writers(self,):
+        train_log_dir = os.path.join(self.checkpoint_path,"train")
+        os.makedirs(train_log_dir,exist_ok=True)
+        self.train_summary_writer = SummaryWriter(train_log_dir)
+        
+        valid_log_dir = os.path.join(self.checkpoint_path,"valid")
+        os.makedirs(valid_log_dir,exist_ok=True)
+        self.valid_summary_writer = SummaryWriter(valid_log_dir)        
+        
+    def get_tasks(self,):
+
+        self.tasks = list(self.train_data.keys())
+        self.valid_tasks = list(self.valid_data.keys())
+        
+
+    def get_model_likelihood_mll(self, train_size):
+        
+        train_x=torch.ones(train_size, self.feature_extractor.out_features).to(self.device)
+        train_y=torch.ones(train_size).to(self.device)
+
+        likelihood = gpytorch.likelihoods.GaussianLikelihood()
+        model = ExactGPLayer(train_x = train_x, train_y = train_y, likelihood = likelihood, config = self.kernel_config, dims = self.feature_extractor.out_features)
+        self.model = model.to(self.device)
+        self.likelihood = likelihood.to(self.device)
+        self.mll        = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model).to(self.device)
+
+
+    def epoch_end(self):
+        RandomTaskGenerator.shuffle(self.tasks)
+
+
+    def meta_train(self, epochs = 50000, lr = 0.0001):
+
+        optimizer = torch.optim.Adam(self.parameters(), lr=lr)
+        scheduler_fn = lambda x,y: torch.optim.lr_scheduler.CosineAnnealingLR(x, y, eta_min=1e-7)
+        for epoch in range(epochs):
+            self.train_loop(epoch, optimizer, scheduler_fn)
+        
+    def train_loop(self, epoch, optimizer, scheduler_fn=None):
+        if scheduler_fn:
+            scheduler = scheduler_fn(optimizer,len(self.tasks))
+        self.epoch_end()
+        assert(self.training)
+        for task in self.tasks:
+            inputs, labels = self.get_batch(task)
+            for _ in range(self.n_inner_steps):
+                optimizer.zero_grad()
+                z = self.feature_extractor(inputs)
+                self.model.set_train_data(inputs=z, targets=labels, strict=False)
+                predictions = self.model(z)
+                loss = -self.mll(predictions, self.model.train_targets)
+                loss.backward()
+                optimizer.step()
+                mse = self.mse(predictions.mean, labels)
+                self.train_metrics.update(loss,self.model.likelihood.noise,mse)
+            if scheduler_fn:
+                scheduler.step()
+        
+        training_results = self.train_metrics.get()
+        for k,v in training_results.items():
+            self.train_summary_writer.add_scalar(k, v, epoch)
+        for task in self.valid_tasks:
+            mse,loss = self.test_loop(task,train=False)
+            self.valid_metrics.update(loss,np.array(0),mse,)
+            
+        logging.info(self.train_metrics.report() + " " + self.valid_metrics.report())
+        validation_results = self.valid_metrics.get()
+        for k,v in validation_results.items():
+            self.valid_summary_writer.add_scalar(k, v, epoch)
+        self.feature_extractor.train()
+        self.likelihood.train()
+        self.model.train()
+        
+        if validation_results["loss"] < self.curr_valid_loss:
+            self.save_checkpoint(os.path.join(self.checkpoint_path,"weights"))
+            self.curr_valid_loss = validation_results["loss"]
+        self.valid_metrics.reset()       
+        self.train_metrics.reset()
+            
+    def test_loop(self, task, train): # no optimizer needed for GP
+        (x_support, y_support),(x_query,y_query) = self.get_support_and_queries(task,train)
+        z_support = self.feature_extractor(x_support).detach()
+        self.model.set_train_data(inputs=z_support, targets=y_support, strict=False)
+        self.model.eval()        
+        self.feature_extractor.eval()
+        self.likelihood.eval()
+
+        with torch.no_grad():
+            z_query = self.feature_extractor(x_query).detach()
+            pred    = self.likelihood(self.model(z_query))
+            loss = -self.mll(pred, y_query)
+            lower, upper = pred.confidence_region() #2 standard deviations above and below the mean
+
+        mse = self.mse(pred.mean, y_query)
+
+        return mse,loss
+
+    def get_batch(self,task):
+        # we want to fit the gp given context info to new observations
+        # task is an algorithm/dataset pair
+        Lambda,response =     np.array(self.train_data[task]["X"]), MinMaxScaler().fit_transform(np.array(self.train_data[task]["y"])).reshape(-1,)
+
+        card, dim = Lambda.shape
+        
+        support_ids = RandomSupportGenerator.choice(np.arange(card),
+                                              replace=False,size=self.batch_size)
+
+        
+        inputs,labels = Lambda[support_ids], response[support_ids]
+        inputs,labels = totorch(inputs,device=self.device), totorch(labels.reshape(-1,),device=self.device)
+        return inputs, labels
+        
+    def get_support_and_queries(self,task, train=False):
+        
+        # task is an algorithm/dataset pair
+        
+        hpo_data = self.valid_data if not train else self.train_data
+        Lambda,response =     np.array(hpo_data[task]["X"]), MinMaxScaler().fit_transform(np.array(hpo_data[task]["y"])).reshape(-1,)
+        card, dim = Lambda.shape
+
+        support_ids = RandomSupportGenerator.choice(np.arange(card),
+                                              replace=False,size=self.batch_size)
+        query_ids = RandomQueryGenerator.choice(
+            np.setdiff1d(np.arange(card),support_ids),replace=False,size=self.test_batch_size)
+        
+        support_x,support_y = Lambda[support_ids], response[support_ids]
+        query_x,query_y = Lambda[query_ids], response[query_ids]
+        
+        return (totorch(support_x,self.device),totorch(support_y.reshape(-1,),self.device)),\
+    (totorch(query_x,self.device),totorch(query_y.reshape(-1,),self.device))
+        
+    def save_checkpoint(self, checkpoint):
+        # save state
+        gp_state_dict         = self.model.state_dict()
+        likelihood_state_dict = self.likelihood.state_dict()
+        nn_state_dict         = self.feature_extractor.state_dict()
+        torch.save({'gp': gp_state_dict, 'likelihood': likelihood_state_dict, 'net':nn_state_dict}, checkpoint)
+
+    def load_checkpoint(self, checkpoint):
+        ckpt = torch.load(checkpoint)
+        self.model.load_state_dict(ckpt['gp'])
+        self.likelihood.load_state_dict(ckpt['likelihood'])
+        self.feature_extractor.load_state_dict(ckpt['net'])
+
+class ExactGPLayer(gpytorch.models.ExactGP):
+    def __init__(self, train_x, train_y, likelihood,config,dims ):
+        super(ExactGPLayer, self).__init__(train_x, train_y, likelihood)
+        self.mean_module  = gpytorch.means.ConstantMean()
+
+        ## RBF kernel
+        if(config["kernel"]=='rbf' or config["kernel"]=='RBF'):
+            self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel(ard_num_dims=dims if config["ard"] else None))
+        elif(config["kernel"]=='matern'):
+            self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.MaternKernel(nu=config["nu"],ard_num_dims=dims if config["ard"] else None))
+        ## Spectral kernel
+        else:
+            raise ValueError("[ERROR] the kernel '" + str(config["kernel"]) + "' is not supported for regression, use 'rbf' or 'spectral'.")
+            
+    def forward(self, x):
+        mean_x  = self.mean_module(x)
+        covar_x = self.covar_module(x)
+        return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
+    
+
+class MLP(nn.Module):
+    def __init__(self, input_size, hidden_size=[32,32,32,32], dropout=0.0):
+        
+        super(MLP, self).__init__()
+        self.nonlinearity = nn.ReLU()
+        self.fc = nn.ModuleList([nn.Linear(in_features=input_size, out_features=hidden_size[0])])
+        for d_out in hidden_size[1:]:
+            self.fc.append(nn.Linear(in_features=self.fc[-1].out_features, out_features=d_out))
+        self.out_features = hidden_size[-1]
+        self.dropout = nn.Dropout(dropout)
+    def forward(self,x):
+        
+        for fc in self.fc[:-1]:
+            x = fc(x)
+            x = self.dropout(x)
+            x = self.nonlinearity(x)
+        x = self.fc[-1](x)
+        x = self.dropout(x)
+        return x
