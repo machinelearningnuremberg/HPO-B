@@ -2,18 +2,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 from hpob_handler import HPOBHandler
 from methods.fsbo.fsbo_modules import DeepKernelGP
-
 import os 
-valid_acquisitions = ["UCB", "EI", "PM", "PI", "qEI"]
-seeds = ["test0", "test1", "test2", "test3", "test4"]
-acc_list = []
-n_trials = 20
 
-randomInitializer = np.random.RandomState(0) ########### for random restarts
+randomInitializer = np.random.RandomState(0) 
 hpob_hdlr = HPOBHandler(root_dir="hpob-data/", mode="v3-test")
 search_space_id =  hpob_hdlr.get_search_spaces()[0]
 dataset_id = hpob_hdlr.get_datasets(search_space_id)[0]
 seed  = "test0"
+n_trials = 20
+
 
 dim = hpob_hdlr.get_search_space_dim(search_space_id)
 torch_seed = randomInitializer.randint(0,100000)
@@ -39,5 +36,4 @@ acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id,
         
 
 plt.plot(np.array(acc))
-plt.legend(valid_acquisitions)
 plt.show()
