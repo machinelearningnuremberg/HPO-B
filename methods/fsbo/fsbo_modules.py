@@ -31,7 +31,7 @@ class DeepKernelGP(nn.Module):
                          verbose = False, eval_batch_size = 1000):
         super(DeepKernelGP, self).__init__()
         torch.manual_seed(seed)
-        ## GP parameters
+        
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.input_size = input_size
         self.hidden_size = hidden_size
@@ -160,7 +160,6 @@ class FSBO(nn.Module):
     def __init__(self, train_data,valid_data, checkpoint_path, batch_size = 64, test_batch_size = 64,
                  n_inner_steps = 1, kernel = "matern", ard = False, nu=2.5, hidden_size = [32,32,32,32] ):
         super(FSBO, self).__init__()
-        ## GP parameters
         self.train_data = train_data
         self.valid_data = valid_data
         self.batch_size = batch_size
