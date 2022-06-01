@@ -68,9 +68,9 @@ class DeepKernelGP(nn.Module):
 
         if self.load_model:
             assert(self.checkpoint is not None)
-            print("Model_loaded")
             self.load_checkpoint(os.path.join(self.checkpoint,"weights"))
-            
+            print("Model_loaded")
+           
 
         losses = [np.inf]
         best_loss = np.inf
