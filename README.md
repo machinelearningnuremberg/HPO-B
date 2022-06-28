@@ -218,7 +218,7 @@ Afterwards, you can use the `BenchmarkPlotter` class from `benchmark_plot.py`. A
 
 ## Update (June 28 2022)
 
-A refactored implementation of FSBO, the best performing model according to our benchmark, is avaialble in this [repo](https://github.com/releaunifreiburg/FSBO). We also included an evaluation on continuous search spaces, which was not present in the original paper. During the evaluation of these results, we realied that the minimum and maximum values for tha tasks on the space 5970 were wrong. The fixed values are already provided in the updated link for the surrogates.
+A refactored implementation of FSBO, the best performing model according to our benchmark, is avaialble in this [repo](https://github.com/releaunifreiburg/FSBO). We also included an evaluation on continuous search spaces, which was not present in the original paper. During the evaluation of these results, we realied that the minimum and maximum values for tha tasks on the space 5970 were wrong. The fixed values are already provided in the updated link for the surrogates. We include the evaluations for the continuous search spaces under the folder `results`, with names `RS-C.json, GP-C.json, DGP-C.json`.
 
 ## Cite us
 ```
