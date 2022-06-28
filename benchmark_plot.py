@@ -111,6 +111,9 @@ class BenchmarkPlotter:
                         try:
                             regret = [1-x for x in  self.results[experiment][search_space][task][seed]]
                             
+                            if len(regret)< self.n_trials and regret[-1]==0:
+                                regret += [0]*(self.n_trials-len(regret))
+
                             assert len(regret) >= self.n_trials, "The task {} should have length {} in experiment {} for space {} and seed {}".format(task, self.n_trials,  experiment, search_space, seed)
                             regret = regret[:self.n_trials]
                             

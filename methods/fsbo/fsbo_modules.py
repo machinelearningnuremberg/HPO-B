@@ -16,7 +16,7 @@ from torch.utils.tensorboard import SummaryWriter
 import time
 import gpytorch
 import logging
-from .fsbo_utils import totorch, Metric, EI
+from fsbo_utils import totorch, Metric, EI
 
 np.random.seed(1203)
 RandomQueryGenerator= np.random.RandomState(413)
@@ -31,7 +31,6 @@ class DeepKernelGP(nn.Module):
                          verbose = False, eval_batch_size = 1000):
         super(DeepKernelGP, self).__init__()
         torch.manual_seed(seed)
-        
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.input_size = input_size
         self.hidden_size = hidden_size
@@ -68,9 +67,9 @@ class DeepKernelGP(nn.Module):
 
         if self.load_model:
             assert(self.checkpoint is not None)
-            self.load_checkpoint(os.path.join(self.checkpoint,"weights"))
             print("Model_loaded")
-           
+            self.load_checkpoint(os.path.join(self.checkpoint,"weights"))
+            
 
         losses = [np.inf]
         best_loss = np.inf
@@ -220,13 +219,14 @@ class FSBO(nn.Module):
     def meta_train(self, epochs = 50000, lr = 0.0001):
 
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
-        scheduler_fn = lambda x,y: torch.optim.lr_scheduler.CosineAnnealingLR(x, y, eta_min=1e-7)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, epochs, eta_min=1e-7)
+
         for epoch in range(epochs):
-            self.train_loop(epoch, optimizer, scheduler_fn)
+            self.train_loop(epoch, optimizer, scheduler)
         
-    def train_loop(self, epoch, optimizer, scheduler_fn=None):
-        if scheduler_fn:
-            scheduler = scheduler_fn(optimizer,len(self.tasks))
+    def train_loop(self, epoch, optimizer, scheduler=None):
+        
+
         self.epoch_end()
         assert(self.training)
         for task in self.tasks:
@@ -241,8 +241,8 @@ class FSBO(nn.Module):
                 optimizer.step()
                 mse = self.mse(predictions.mean, labels)
                 self.train_metrics.update(loss,self.model.likelihood.noise,mse)
-            if scheduler_fn:
-                scheduler.step()
+        if scheduler:
+            scheduler.step()
         
         training_results = self.train_metrics.get()
         for k,v in training_results.items():
@@ -291,7 +291,7 @@ class FSBO(nn.Module):
         card, dim = Lambda.shape
         
         support_ids = RandomSupportGenerator.choice(np.arange(card),
-                                              replace=False,size=self.batch_size)
+                                              replace=False,size= min(self.batch_size, card))
 
         
         inputs,labels = Lambda[support_ids], response[support_ids]
@@ -307,9 +307,9 @@ class FSBO(nn.Module):
         card, dim = Lambda.shape
 
         support_ids = RandomSupportGenerator.choice(np.arange(card),
-                                              replace=False,size=self.batch_size)
-        query_ids = RandomQueryGenerator.choice(
-            np.setdiff1d(np.arange(card),support_ids),replace=False,size=self.test_batch_size)
+                                              replace=False,size=min(self.batch_size, card))
+        diff_set = np.setdiff1d(np.arange(card),support_ids)
+        query_ids = RandomQueryGenerator.choice(diff_set,replace=False,size=min(self.batch_size, len(diff_set)))
         
         support_x,support_y = Lambda[support_ids], response[support_ids]
         query_x,query_y = Lambda[query_ids], response[query_ids]

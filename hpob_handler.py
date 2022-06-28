@@ -135,7 +135,6 @@ class HPOBHandler:
         assert dataset_id!= None, "Provide a valid dataset_id. See documentation for valid options."
         assert seed!=None, "Provide a valid initialization. Valid options are: test0, test1, test2, test3, test4."
 
-        n_initial_evaluations = 5
         X = np.array(self.meta_test_data[search_space_id][dataset_id]["X"])
         y = np.array(self.meta_test_data[search_space_id][dataset_id]["y"])
         y = self.normalize(y)
@@ -146,7 +145,7 @@ class HPOBHandler:
 
         init_ids = self.bo_initializations[search_space_id][dataset_id][seed]
         
-        for i in range(n_initial_evaluations):
+        for i in range(len(init_ids)):
             idx = init_ids[i]
             pending_evaluations.remove(idx)
             current_evaluations.append(idx)
@@ -159,6 +158,11 @@ class HPOBHandler:
             pending_evaluations.remove(idx)
             current_evaluations.append(idx)
             max_accuracy_history.append(np.max(y[current_evaluations]))
+
+            if max(y) in max_accuracy_history:
+                break
+        
+        max_accuracy_history+=[max(y).item()]*(n_trials-i-1)
         
         return max_accuracy_history
 
@@ -173,7 +177,7 @@ class HPOBHandler:
             * seed: Identifier of the seed for the evaluation. Options: test0, test1, test2, test3, test4.
             * trails: Number of trials (iterations on the opoitmization).
         Ooutput:
-            * a list with the maximumu performance (incumbent) for every trial.
+            * a list with the maximum performance (incumbent) for every trial.
 
         """
 
@@ -187,7 +191,6 @@ class HPOBHandler:
         bst_surrogate = xgb.Booster()
         bst_surrogate.load_model(self.surrogates_dir+surrogate_name+'.json')
 
-        n_initial_evaluations = 5
         X = np.array(self.meta_test_data[search_space_id][dataset_id]["X"])
         y = np.array(self.meta_test_data[search_space_id][dataset_id]["y"])
         y_min = self.surrogates_stats[surrogate_name]["y_min"]
@@ -196,7 +199,7 @@ class HPOBHandler:
         current_evaluations = []        
         init_ids = self.bo_initializations[search_space_id][dataset_id][seed]
         
-        for i in range(n_initial_evaluations):
+        for i in range(len(init_ids)):
             idx = init_ids[i]
             current_evaluations.append(idx)
         
@@ -218,9 +221,13 @@ class HPOBHandler:
             y_observed = np.append(y_observed, new_y).reshape(-1,1)
             x_observed = np.append(x_observed, new_x).reshape(-1,x_observed.shape[1])
 
+            if max(y_observed) >= y_max:
+                break
+
         y_tf_observed = self.normalize(y_observed, y_min, y_max)
         y_tf_observed = np.clip(y_tf_observed, 0, 1)
         max_accuracy_history.append(best_f)
+        max_accuracy_history+=[1]*(n_trials-i-1)
 
         return max_accuracy_history
 

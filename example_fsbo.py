@@ -25,7 +25,7 @@ log_dir = os.path.join(log_dir, f"{dataset_id}.txt")
 checkpoint = os.path.join(rootdir,"methods","fsbo","checkpoints","FSBO", f"{search_space_id}")
 
 #define the DeepKernelGP as HPO method
-method = DeepKernelGP(dim, log_dir, torch_seed , load_model = True, checkpoint = checkpoint, verbose = True)
+method = DeepKernelGP(dim, log_dir, torch_seed, epochs = 1000, load_model = load_model, checkpoint = checkpoint, verbose = True)
 
 #evaluate the HPO method
 acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 

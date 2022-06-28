@@ -11,3 +11,4 @@ hpob-data/meta-validation-dataset.json
 internal-results/
 results.zip
 results/GP_BOTORCH.json
+plots/
