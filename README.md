@@ -9,6 +9,8 @@ The meta-dataset contains evaluations of the accuracy for different search-space
 - **HPO-B-v2**: Subset of 16 meta-datasets with the most frequent search spaces.
 - **HPO-B-v3**: Split of HPO-B-v2 into training, validation and testing. 
 
+In al our settings the response function is to be **maximized**.
+
 **The HPO-B benchmark meta-dataset is available  [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL/download/hpob-data.zip)**.
 
 **Additionally, if you wish to test on continuous search spaces, download the surrogates [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/rTwPgaxS2Z7NH39/download/saved-surrogates.zip)**.
