@@ -222,6 +222,10 @@ Afterwards, you can use the `BenchmarkPlotter` class from `benchmark_plot.py`. A
 
 A refactored implementation of FSBO, the best performing model according to our benchmark, is avaialble in this [repo](https://github.com/releaunifreiburg/FSBO). We also included an evaluation on continuous search spaces, which was not present in the original paper. During the evaluation of these results, we realied that the minimum and maximum values for tha tasks on the space 5970 were wrong. The fixed values are already provided in the updated link for the surrogates. We include the evaluations for the continuous search spaces under the folder `results`, with names `RS-C.json, GP-C.json, DGP-C.json`.
 
+## Update (September 30 2022)
+
+We added `hpob-data/meta-dataset-descriptors.json`, a JSON file containing the descriptions of the original variable names and ranges per search space (first level in the file). Moreover, we specify which variables have log transformation in the meta-dataset.
+
 ## Cite us
 ```
 
