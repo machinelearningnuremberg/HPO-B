@@ -1,18 +1,26 @@
 import numpy as np
-import json
+try:
+    import ujson as json
+except:
+    import json
 import os
 import xgboost as xgb
+
+this_dir = os.path.abspath(os.path.dirname(__file__))
 
 
 class HPOBHandler:
 
-    def __init__(self, root_dir = "hpob-data/", mode = "v3-test", surrogates_dir="saved-surrogates/"):
-        
+    def __init__(self,
+        root_dir = os.path.join(this_dir, "hpob-data/"),
+        mode = "v3-test",
+        surrogates_dir="saved-surrogates/"):
+
         """
         Constructor for the HPOBHandler.
         Inputs:
             * root_dir: path to directory with the benchmark data.
-            * mode: mode name indicating how to load the data. Options: 
+            * mode: mode name indicating how to load the data. Options:
                 - v1: Loads HPO-B-v1
                 - v2: Loads HPO-B-v2
                 - v3: Loads HPO-B-v3
@@ -21,7 +29,7 @@ class HPOBHandler:
             * surrogates_dir: path to directory with surrogates models.
 
         """
-        
+
         print("Loading HPO-B handler")
         self.mode = mode
         self.surrogates_dir = surrogates_dir
@@ -41,7 +49,7 @@ class HPOBHandler:
             with open(surrogates_file) as f:
                 self.surrogates_stats = json.load(f)
 
-        
+
 
 
 
@@ -66,7 +74,7 @@ class HPOBHandler:
 
         with open(meta_test_path, "rb") as f:
             self.meta_test_data = json.load(f)
-        
+
         with open(bo_initializations_path, "rb") as f:
             self.bo_initializations = json.load(f)
 
@@ -88,7 +96,7 @@ class HPOBHandler:
                 for dataset in self.meta_train_data[search_space].keys():
                     temp_data[search_space][dataset] =  self.meta_train_data[search_space][dataset]
 
-                if search_space in self.meta_test_data.keys():             
+                if search_space in self.meta_test_data.keys():
                     for dataset in self.meta_test_data[search_space].keys():
                         temp_data[search_space][dataset] = self.meta_test_data[search_space][dataset]
 
@@ -96,8 +104,8 @@ class HPOBHandler:
                         temp_data[search_space][dataset] = self.meta_validation_data[search_space][dataset]
 
             self.meta_train_data = None
-            self.meta_validation_data = None                
-            self.meta_test_data = temp_data     
+            self.meta_validation_data = None
+            self.meta_test_data = temp_data
 
         self.search_space_dims = {}
 
@@ -117,7 +125,7 @@ class HPOBHandler:
     def evaluate (self, bo_method = None, search_space_id = None, dataset_id = None, seed = None, n_trials = 10):
 
         """
-        Evaluates a method on the benchmark with discretized search-spaces. 
+        Evaluates a method on the benchmark with discretized search-spaces.
         Inputs:
             * bo_method: object to evaluate. It should have a function (class method) named 'observe_and_suggest'.
             * search_space_id: Identifier of the search spaces for the evaluation. Option: see original paper.
@@ -135,16 +143,20 @@ class HPOBHandler:
         assert dataset_id!= None, "Provide a valid dataset_id. See documentation for valid options."
         assert seed!=None, "Provide a valid initialization. Valid options are: test0, test1, test2, test3, test4."
 
-        X = np.array(self.meta_test_data[search_space_id][dataset_id]["X"])
-        y = np.array(self.meta_test_data[search_space_id][dataset_id]["y"])
+        try:
+            X = np.array(self.meta_test_data[search_space_id][dataset_id]["X"])
+            y = np.array(self.meta_test_data[search_space_id][dataset_id]["y"])
+        except KeyError:
+            print(self.meta_test_data.keys())
+            raise
         y = self.normalize(y)
         data_size = len(X)
-        
+
         pending_evaluations = list(range(data_size))
-        current_evaluations = []        
+        current_evaluations = []
 
         init_ids = self.bo_initializations[search_space_id][dataset_id][seed]
-        
+
         for i in range(len(init_ids)):
             idx = init_ids[i]
             pending_evaluations.remove(idx)
@@ -152,8 +164,11 @@ class HPOBHandler:
 
         max_accuracy_history = [np.max(y[current_evaluations])]
         for i in range(n_trials):
-
-            idx = bo_method.observe_and_suggest(X[current_evaluations], y[current_evaluations], X[pending_evaluations])
+            idx = bo_method.observe_and_suggest(
+                X_obs=X[current_evaluations],
+                y_obs=y[current_evaluations],
+                X_pen=X[pending_evaluations],
+            )
             idx = pending_evaluations[idx]
             pending_evaluations.remove(idx)
             current_evaluations.append(idx)
@@ -161,15 +176,15 @@ class HPOBHandler:
 
             if max(y) in max_accuracy_history:
                 break
-        
+
         max_accuracy_history+=[max(y).item()]*(n_trials-i-1)
-        
+
         return max_accuracy_history
 
     def evaluate_continuous(self, bo_method = None, search_space_id = None, dataset_id = None, seed = None, n_trials = 10):
 
         """
-        Evaluates a method on the benchmark with continuous search-spaces. 
+        Evaluates a method on the benchmark with continuous search-spaces.
         Inputs:
             * bo_method: object to evaluate. It should have a function (class method) named 'observe_and_suggest'.
             * search_space_id: Identifier of the search spaces for the evaluation. Option: see original paper.
@@ -185,7 +200,7 @@ class HPOBHandler:
         assert hasattr(bo_method, "observe_and_suggest"), "The provided  object does not have a method called ´observe_and_suggest´"
         assert search_space_id!= None, "Provide a valid search space id. See documentatio for valid obptions."
         assert dataset_id!= None, "Provide a valid dataset_id. See documentation for valid options."
-        assert seed!=None, "Provide a valid initialization. Valid options are: test0, test1, test2, test3, test4."       
+        assert seed!=None, "Provide a valid initialization. Valid options are: test0, test1, test2, test3, test4."
 
         surrogate_name='surrogate-'+search_space_id+'-'+dataset_id
         bst_surrogate = xgb.Booster()
@@ -196,13 +211,13 @@ class HPOBHandler:
         y_min = self.surrogates_stats[surrogate_name]["y_min"]
         y_max = self.surrogates_stats[surrogate_name]["y_max"]
         dim = X.shape[1]
-        current_evaluations = []        
+        current_evaluations = []
         init_ids = self.bo_initializations[search_space_id][dataset_id][seed]
-        
+
         for i in range(len(init_ids)):
             idx = init_ids[i]
             current_evaluations.append(idx)
-        
+
         x_observed = X[current_evaluations]
         y_observed = y[current_evaluations]
 

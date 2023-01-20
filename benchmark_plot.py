@@ -1,21 +1,27 @@
+import os
 import matplotlib.pyplot as plt
 import json
 import numpy as np
 import pandas as pd
-from cd_diagram import draw_cd_diagram as draw
+from .cd_diagram import draw_cd_diagram as draw
 from matplotlib.ticker import MaxNLocator
-from hpob_handler import HPOBHandler
+from .hpob_handler import HPOBHandler
+
+this_dir = os.path.abspath(os.path.dirname(__file__))
+
 
 class BenchmarkPlotter:
 
-    def __init__(self, experiments=None, seeds = None, draw_std=True, draw_per_space=True, n_trials = 100, 
-                    name="benchmark_plot", output_path="plots/", 
-                    results_path = "results/", data_path = "data/"):
-        
+    def __init__(self, experiments=None, seeds = None, draw_std=True, draw_per_space=True, n_trials = 100,
+                    name="benchmark_plot",
+                    output_path=os.path.join(this_dir, "plots/"),
+                    results_path = os.path.join(this_dir, "results/"),
+                    data_path = os.path.join(this_dir, "data/")):
+
         super(BenchmarkPlotter, self).__init__()
 
         assert experiments is not None, "Provide the name of the experiments to plot"
-        assert n_trials<101,"The maximum value for max_bo_iters is 101" 
+        assert n_trials<101,"The maximum value for max_bo_iters is 101"
 
         self.experiments = experiments
         self.seeds = seeds if seeds is not None else ["test0", "test1", "test2", "test3", "test4"]
@@ -30,7 +36,7 @@ class BenchmarkPlotter:
         self.load_results()
 
         with open(data_path+"meta-test-tasks-per-space.json", "r") as f:
-            self.task_list_per_space = json.load(f) 
+            self.task_list_per_space = json.load(f)
 
         self.search_spaces = list(self.task_list_per_space.keys())
 
@@ -63,7 +69,7 @@ class BenchmarkPlotter:
             with open(self.results_path+experiment+".json") as f:
                 temp_data = json.load(f)
             self.results[experiment] =  temp_data
-        
+
         return self.results
 
     def plots_on_axis(self, axis, mean, std, ci_factor, title="", y_label="Average Rank", draw_std=False, scale = "linear"):
@@ -110,25 +116,25 @@ class BenchmarkPlotter:
                     for experiment in self.experiments:
                         try:
                             regret = [1-x for x in  self.results[experiment][search_space][task][seed]]
-                            
+
                             if len(regret)< self.n_trials and regret[-1]==0:
                                 regret += [0]*(self.n_trials-len(regret))
 
                             assert len(regret) >= self.n_trials, "The task {} should have length {} in experiment {} for space {} and seed {}".format(task, self.n_trials,  experiment, search_space, seed)
                             regret = regret[:self.n_trials]
-                            
+
                             task_seed_results.append(regret)
                         except Exception as e:
                             complete_results_task_seed = False
                             print(e)
                             print("The taks {} was probably not found for experiment {}, search space {} and seed {}".format(task, experiment, search_space, seed))
-                    
+
                     if complete_results_task_seed:
                             rank_df = pd.DataFrame(1-np.array(task_seed_results).round(8)).rank(axis=0, ascending=False)
 
                             self.rank_per_space[search_space].append(rank_df.to_numpy().tolist())
                             self.regret_per_space[search_space].append(task_seed_results)
-            
+
             self.all_ranks.extend(self.rank_per_space[search_space])
             self.all_regrets.extend(self.regret_per_space[search_space])
 
@@ -153,10 +159,10 @@ class BenchmarkPlotter:
         fig.legend(self.experiments,loc="lower center", bbox_to_anchor=(0.55, -0.05), ncol=5, fontsize=32)
         fig2.legend(self.experiments,loc="lower center", bbox_to_anchor=(0.55, -0.05), ncol=5, fontsize=32)
 
-        fig.subplots_adjust(wspace=0.4, hspace=0.4)    
+        fig.subplots_adjust(wspace=0.4, hspace=0.4)
         fig2.subplots_adjust(wspace=0.4, hspace=0.4)
 
-        plt.tight_layout()            
+        plt.tight_layout()
         plt.draw()
 
         fig.savefig(path+name+"_rank.png", bbox_inches="tight")
@@ -201,23 +207,23 @@ class BenchmarkPlotter:
         for search_space_id in search_spaces:
 
             if search_space_id not in results.keys():
-                results[search_space_id] = {} 
-            
+                results[search_space_id] = {}
+
             for dataset_id in hpob_hdlr.get_datasets(search_space_id):
 
                 if dataset_id not in results[search_space_id].keys():
-                    results[search_space_id][dataset_id] = {} 
+                    results[search_space_id][dataset_id] = {}
 
                 for seed in seeds:
 
                     if hasattr(method, "initialize"):
-                        method.initialize(*args)          
-                              
-                    results[search_space_id][dataset_id][seed]  = hpob_hdlr.evaluate(method, search_space_id = search_space_id, 
+                        method.initialize(*args)
+
+                    results[search_space_id][dataset_id][seed]  = hpob_hdlr.evaluate(method, search_space_id = search_space_id,
                                                             dataset_id = dataset_id,
                                                             seed = seed,
                                                             n_trials = n_trials )
-                                                        
+
 
         with open(self.results_path+new_method_name, "w") as f:
             json.dump(results, f)
@@ -231,10 +237,10 @@ if __name__=="__main__":
     name = "benchmark_plot"
     experiments = ["Random", "FSBO", "TST", "DGP", "RGPE" , "BOHAMIANN", "DNGO", "TAF", "GP"]
 
-    benchmark_plotter  = BenchmarkPlotter(experiments=experiments, 
+    benchmark_plotter  = BenchmarkPlotter(experiments=experiments,
                                             name = name,
-                                            results_path=results_path, 
-                                            output_path=output_path, 
+                                            results_path=results_path,
+                                            output_path=output_path,
                                             data_path = data_path)
 
     benchmark_plotter.plot()
