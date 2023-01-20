@@ -1,6 +1,9 @@
 import os
 import matplotlib.pyplot as plt
-import json
+try:
+    import ujson as json
+except:
+    import json
 import numpy as np
 import pandas as pd
 from .cd_diagram import draw_cd_diagram as draw

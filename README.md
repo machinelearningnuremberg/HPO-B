@@ -77,6 +77,7 @@ acc = hpob_hdlr.evaluate_continuous(method, search_space_id = search_space_id,
 * XGBoost (optional for using the surrogates on a continuous search space)
 * networkx (optional for using the `BenchmarkPlotter`
 * matpotlib 3.4.2
+* Optional: ujson for faster loading of json files
 
 ## Basic example
 
