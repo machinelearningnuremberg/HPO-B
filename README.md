@@ -77,7 +77,8 @@ acc = hpob_hdlr.evaluate_continuous(method, search_space_id = search_space_id,
 * XGBoost (optional for using the surrogates on a continuous search space)
 * networkx (optional for using the `BenchmarkPlotter`
 * matpotlib 3.4.2
-* Optional: ujson for faster loading of json files
+* cd_diagram.py: donwload file from (HERE)[https://github.com/hfawaz/cd-diagram/blob/master/main.py] and put in the main folder.
+* ujson (optinonal for faster loading of json files)
 
 ## Basic example
 
@@ -226,6 +227,10 @@ A refactored implementation of FSBO, the best performing model according to our 
 ## Update (September 30 2022)
 
 We added `hpob-data/meta-dataset-descriptors.json`, a JSON file containing the descriptions of the original variable names and ranges per search space (first level in the file). Moreover, we specify which variables have log transformation in the meta-dataset.
+
+## Update (June 13 2023)
+
+We remove `cd_diagram.py` due to license. We recommend to download the file from the original [author](https://github.com/hfawaz/cd-diagram/main.py) and rename it as `cd_diagram.py`.
 
 ## Cite us
 ```
