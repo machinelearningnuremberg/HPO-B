@@ -77,7 +77,7 @@ acc = hpob_hdlr.evaluate_continuous(method, search_space_id = search_space_id,
 * XGBoost (optional for using the surrogates on a continuous search space)
 * networkx (optional for using the `BenchmarkPlotter`
 * matpotlib 3.4.2
-* cd_diagram.py: donwload file from (HERE)[https://github.com/hfawaz/cd-diagram/blob/master/main.py] and put in the main folder.
+* cd_diagram.py: donwload file from [HERE](https://github.com/hfawaz/cd-diagram/blob/master/main.py) and put in the main folder.
 * ujson (optinonal for faster loading of json files)
 
 ## Basic example
