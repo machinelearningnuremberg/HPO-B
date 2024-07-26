@@ -20,7 +20,6 @@ def train_and_save_xgb(X, y, surrogates_path="saved-surrogates/", model_name="su
     bst.save_model(surrogates_path+model_name+".json")
 
     with open(logs_file, "a") as file_object:
-    # Append 'hello' at the end of file
         file_object.write("MSE="+str(round(error, 5))+" for "+model_name+ " with eta="+ str(param["eta"]) + " and rounds=" +str(num_round)+ "\n")
 
 def tune_hyperparemeters(data_matrix, objective):
