@@ -13,6 +13,10 @@ In al our settings the response function is to be **maximized**.
 
 **The HPO-B benchmark meta-dataset is available  [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL/download/hpob-data.zip)**.
 
+```bash
+wget https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL/download/hpob-data.zip
+```
+
 **Additionally, if you wish to test on continuous search spaces, download the surrogates [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/rTwPgaxS2Z7NH39/download/saved-surrogates.zip)**.
 ## Usage
 
