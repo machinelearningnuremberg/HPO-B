@@ -11,10 +11,10 @@ The meta-dataset contains evaluations of the accuracy for different search-space
 
 In al our settings the response function is to be **maximized**.
 
-**The HPO-B benchmark meta-dataset is available  [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL/download/hpob-data.zip)**.
+**The HPO-B benchmark meta-dataset is available  [HERE](https://rewind.tf.uni-freiburg.de/remote.php/dav/files/pineda/RELEA/Data/hpob-data.zip)**.
 
 ```bash
-wget https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL/download/hpob-data.zip
+wget https://rewind.tf.uni-freiburg.de/remote.php/dav/files/pineda/RELEA/Data/hpob-data.zip
 ```
 
 **Additionally, if you wish to test on continuous search spaces, download the surrogates [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/rTwPgaxS2Z7NH39/download/saved-surrogates.zip)**.
@@ -53,7 +53,7 @@ acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id,
 
 ## Usage with surrogates (continuous search-spaces)
 
-With HPO-B, Tt is possible to perform the optimization in a continuous serch-space by using surrogates that approximate the real response function. The surrogates ware XGBoost models trained on the discrete data. If you want to perform the benchmarking on continunous search-spaces, follow these steps:
+With HPO-B, Tt is possible to perform the optimization in a continuous search space by using surrogates that approximate the real response function. The surrogates were XGBoost models trained on the discrete data. If you want to perform the benchmarking on continuous search-spaces, follow these steps:
 
 * Download this repo and the [meta-dataset](https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL/download/hpob-data.zip).
 * Download the surrogate models from this [link](https://rewind.tf.uni-freiburg.de/index.php/s/rTwPgaxS2Z7NH39/download/saved-surrogates.zip). Every surrogate is an XGBoost model, whose name follows the pattern: "surrogate-[search_space_id]+[task_id].json".
@@ -82,7 +82,7 @@ acc = hpob_hdlr.evaluate_continuous(method, search_space_id = search_space_id,
 * networkx (optional for using the `BenchmarkPlotter`
 * matpotlib 3.4.2
 * cd_diagram.py: donwload file from [HERE](https://github.com/hfawaz/cd-diagram/blob/master/main.py) and put in the main folder.
-* ujson (optinonal for faster loading of json files)
+* ujson (optional for faster loading of json files)
 
 ## Basic example
 
