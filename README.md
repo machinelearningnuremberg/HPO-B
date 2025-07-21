@@ -11,7 +11,7 @@ The meta-dataset contains evaluations of the accuracy for different search-space
 
 In al our settings the response function is to be **maximized**.
 
-**The HPO-B benchmark meta-dataset is available  [HERE](https://rewind.tf.uni-freiburg.de/public.php/dav/files/cCin5iM5N4iCypF) or in [HuggingFace](https://huggingface.co/datasets/Sebastianpinar/hpob).**
+**The HPO-B benchmark meta-dataset is available  [HERE](https://github.com/sebastianpinedaar/hpo-data/raw/refs/heads/main/hpob-data.zip?download=) or in [HuggingFace](https://huggingface.co/datasets/Sebastianpinar/hpob).**
 
 ```bash
 wget https://rewind.tf.uni-freiburg.de/public.php/dav/files/cCin5iM5N4iCypF -O hpob_data
