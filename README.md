@@ -17,7 +17,7 @@ In al our settings the response function is to be **maximized**.
 wget https://github.com/sebastianpinedaar/hpo-data/raw/refs/heads/main/hpob-data.zip?download= -O hpob_data
 ```
 
-**Additionally, if you wish to test on continuous search spaces, download the surrogates [HERE](https://rewind.tf.uni-freiburg.de/index.php/s/rTwPgaxS2Z7NH39/download/saved-surrogates.zip)**.
+**Additionally, if you wish to test on continuous search spaces, download the surrogates [HERE](https://github.com/sebastianpinedaar/hpo-data/raw/refs/heads/main/saved-surrogates.zip?download=)**.
 ## Usage
 
 Before testing a new algorithm:
