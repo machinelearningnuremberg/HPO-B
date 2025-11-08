@@ -55,7 +55,7 @@ acc = hpob_hdlr.evaluate(method, search_space_id = search_space_id,
 
 With HPO-B, Tt is possible to perform the optimization in a continuous search space by using surrogates that approximate the real response function. The surrogates were XGBoost models trained on the discrete data. If you want to perform the benchmarking on continuous search-spaces, follow these steps:
 
-* Download this repo and the [meta-dataset]([https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL/download/hpob-data.zip](https://github.com/sebastianpinedaar/hpo-data/raw/refs/heads/main/hpob-data.zip?download=).
+* Download this repo and the [meta-dataset](https://github.com/sebastianpinedaar/hpo-data/raw/refs/heads/main/hpob-data.zip?download=).
 * Download the surrogate models from this [link](https://github.com/sebastianpinedaar/hpo-data/raw/refs/heads/main/saved-surrogates.zip?download=). Every surrogate is an XGBoost model, whose name follows the pattern: "surrogate-[search_space_id]+[task_id].json".
 * Install XGBoost.
 * Create a class that encapsulates the new HPO method. The class should have a function called `observe_and_suggest` that will be called by `HPOBHandler` object, the class for loading the data and evaluating the method.
